@@ -62,6 +62,7 @@ public class CabTripDist {
 			double lat2 = Double.parseDouble(tokens[5]);
 			double long2 = Double.parseDouble(tokens[6]);
 
+			System.out.println(value);
 			double dist = GeoDistanceCalc.distance(lat1, long1, lat2, long2, unit);
 			int bandNum = getBand(dist);
 			if (bandNum != -1) {
@@ -90,13 +91,18 @@ public class CabTripDist {
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 		
+		if (args.length < 5)
+		{
+			System.out.println("Usage: CabTrips <input-file> <output-path> <number of bands> <min dist> <max dist>");
+			return;
+		}
 		numBands = Integer.parseInt(args[2]);
 		minDist = Double.parseDouble(args[3]);
 		maxDist = Double.parseDouble(args[4]);
 
 		// build limits if needed
 		distBandLimits = getBandLimits();
-		
+
 		Job job = Job.getInstance(conf, "Cab trip length distribution");
 		job.setJarByClass(CabTripDist.class);
 		job.setMapperClass(TokenizerMapper.class);
