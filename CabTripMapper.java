@@ -3,6 +3,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.TimeZone;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -14,7 +15,12 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, Text
 	private LongWritable start_date = new LongWritable();
 	private Text raw_data = new Text();
 	private VehicleIDTimestamp vehicleTs = new VehicleIDTimestamp();
+	protected static TimeZone timeZone = TimeZone.getTimeZone("US/Pacific");
 	protected static DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS");
+	
+	static {
+		formatter.setTimeZone(timeZone);
+	}
 
 	
 	public void map(Object key, Text value, Context context) throws IOException, InterruptedException {

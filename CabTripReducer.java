@@ -8,13 +8,13 @@ import org.apache.hadoop.mapreduce.Reducer;
  * @author Delano
  *
  */
-public class CabTripReducer 
+public class CabTripReducer
 	extends Reducer<VehicleIDTimestamp, Text, Text, Text> {
 
 
 	private Text taxi_id;
+	private Text trip_id = new Text();
 	private Text segmentString = new Text();
-	private Text values;
 	
 	/**
 	 * @author Delano
@@ -74,7 +74,7 @@ public class CabTripReducer
 		}
 		else
 		{
-			return taxi_id + "::" + currTripNum;
+			return taxi_id.toString() + "," + currTripNum.toString();
 		}
 	}
 
@@ -97,7 +97,7 @@ public class CabTripReducer
 			segList = new ArrayList<CabTripSegment>();
 			segments.put(taxi_id, segList);
 		}
-		System.out.println("Adding segment ["+taxi_id.toString()+", "+seg.toString() + "]");
+		System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		segList.add(seg);
 		
 		return true;
@@ -153,25 +153,27 @@ public class CabTripReducer
 		{
 			inTrip.put(taxi_id, true);
 			tripCounter.put(taxi_id, 1);
-			System.out.println("Start trip 1 for taxi_id ["+taxi_id.toString()+"]");
+			System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[1]");
 			
 			return true;
 		}
 
 		// trash last trip if we start a new one in the middle of it
+		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			inTrip.put(taxi_id, false);
+			//inTrip.put(taxi_id, false);
+			System.out.println("!+Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 			clearSegments(taxi_id);
 			
 			return false;
 		}
 		else 
 		{
-			Integer currTripNum = tripCounter.get(taxi_id) + 1;
 			inTrip.put(taxi_id, true);
+			currTripNum = currTripNum + 1;
 			tripCounter.put(taxi_id, currTripNum);
-			System.out.println("Start trip " + currTripNum.toString() + " for taxi_id ["+taxi_id.toString()+"]");
+			System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 
 			return true;
 		}
@@ -187,10 +189,11 @@ public class CabTripReducer
 	protected static boolean endTrip(Text taxi_id)
 	{
 		Integer currTripNum = tripCounter.get(taxi_id);
-		if (currTripNum == null)
-			System.out.println("Bad trip for taxi_id ["+taxi_id.toString()+"]");
-		else
-			System.out.println("Ending trip " + currTripNum.toString() + " for taxi_id ["+taxi_id.toString()+"]");
+		if (currTripNum != null)
+			System.out.println("--Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
+		//else
+		//	System.out.println("Bad trip for taxi_id ["+taxi_id.toString()+"]");
+		
 		// brand new taxi on this reduce node
 		//if (running != null && running)
 		//{
@@ -231,18 +234,22 @@ public class CabTripReducer
 			double end_long = Double.parseDouble(tokens[6]);
 			String end_status = tokens[7];
 			
+			// meter started within record - new trip
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
 				startTrip(taxi_id);
 				addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
 			}
+			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
 			{
 				addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
 			}
+			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
 			{
-				retVal = addSegment(taxi_id, new CabTripSegment(start, start_lat, start_long));
+				//retVal = addSegment(taxi_id, new CabTripSegment(start, start_lat, start_long));
+				retVal = addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
 				
 				// if we got a failure, delete current trip and return
 				if (!retVal)
@@ -261,11 +268,12 @@ public class CabTripReducer
 						s.append(segList[i]);
 						s.append(",");
 					}
+					trip_id.set(getCurrentTripID(taxi_id));
 					s.append(segList[segList.length-1]);
 					segmentString.set(s.toString());
 					
 					// emit 
-					context.write(taxi_id, segmentString);
+					context.write(trip_id, segmentString);
 				}
 				else
 				{
