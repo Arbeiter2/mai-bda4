@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.TimeZone;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -61,7 +62,8 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, Text
 		start_date.set(Long.parseLong(tokens[1]));
 		
 		// create a string consisting of all the fields comma separated in input  order
-		raw_data.set(String.join(",", Arrays.copyOfRange(tokens, 1, tokens.length)));
+		//raw_data.set(String.join(",", Arrays.copyOfRange(tokens, 1, tokens.length)));
+		raw_data.set( StringUtils.join( Arrays.copyOfRange(tokens, 1, tokens.length), ",") );
 
 		vehicleTs.setvehicleID(taxi_id);
 		vehicleTs.settimestamp(start);
