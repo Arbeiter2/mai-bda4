@@ -105,7 +105,7 @@ public class CabTripDist {
 		}
 	}
 
-	public static class CabIntSumReducer
+	public static class CabDistReducer
 			extends Reducer<IntWritable, IntWritable,
 							Text, IntWritable> {
 		private Text limit = new Text();
@@ -131,8 +131,8 @@ public class CabTripDist {
 			distBandLimits = setBandLimits(numBands, maxDist, bandwidth);
 		}
 
-		public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
-				throws IOException, InterruptedException {
+		public void reduce(IntWritable key, Iterable<IntWritable> values,
+			Context context) throws IOException, InterruptedException {
 			int sum = 0;
 			for (IntWritable val : values) {
 				sum += val.get();
@@ -144,6 +144,28 @@ public class CabTripDist {
 			else
 				limit.set(Double.toString(distBandLimits[bandNumber]));
 			context.write(limit, result);
+		}
+	}
+
+
+	/*
+	 * combines intermediate band/count pairs
+	 *
+	 */
+	public static class CabDistCombiner
+			extends Reducer<IntWritable, IntWritable,
+							IntWritable, IntWritable> {
+		private IntWritable result = new IntWritable();
+
+		@Override
+		public void reduce(IntWritable key, Iterable<IntWritable> values,
+			Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable val : values) {
+				sum += val.get();
+			}
+			result.set(sum);
+			context.write(key, result);
 		}
 	}
 
@@ -168,13 +190,11 @@ public class CabTripDist {
 		{
 			System.out.println("Usage: CabTripDist <input-file> <output-path> <max dist> <bandwidth>");
 			System.out.println("<max-dist> must be a multiple of <bandwidth>");
-			System.out.println("maxDist = "+Double.toString(maxDist)+", bandwidth="+Double.toString(bandwidth)+", numBands="+Double.toString(maxDist/bandwidth+1));
 			return;
 		}
 
 		conf.setDouble("maxDist", maxDist);
 		conf.setDouble("bandwidth", bandwidth);
-		System.out.println("maxDist = "+Double.toString(maxDist)+", bandwidth="+Double.toString(bandwidth)+", numBands="+Double.toString(maxDist/bandwidth+1));
 
 		Job job = Job.getInstance(conf, "Cab trip length distribution");
 
@@ -184,11 +204,11 @@ public class CabTripDist {
 
 		job.setJarByClass(CabTripDist.class);
 		job.setMapperClass(CabDistMapper.class);
-		//job.setCombinerClass(CabIntSumReducer.class);
+		job.setCombinerClass(CabDistCombiner.class);
 		job.setMapOutputKeyClass(IntWritable.class);
 		job.setMapOutputValueClass(IntWritable.class);
 
-		job.setReducerClass(CabIntSumReducer.class);
+		job.setReducerClass(CabDistReducer.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 
