@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 
 /**
- * @author Delano
+ * @author Delano Greenidge
  *
  */
 public class CabTrips extends Configured implements Tool{
@@ -22,12 +22,20 @@ public class CabTrips extends Configured implements Tool{
 
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance(conf, "Cab trip builder");
-		job.setJarByClass(CabTrips.class);
-		job.setJobName("CabTrips");
-		
-
 	    FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+		// use user-supplied number of reduce tasks
+		int numReduceTasks = 1;
+		if (args.length > 2)
+		{
+			numReduceTasks = Integer.parseInt(args[2]);
+			if (numReduceTasks > 2)
+				job.setNumReduceTasks(numReduceTasks);
+		}
+		job.setJarByClass(CabTrips.class);
+		job.setJobName("CabTrips ["+args[0]+"], "+Integer.toString(numReduceTasks)+" reduce tasks");
+		
 
 		job.setOutputKeyClass(VehicleIDTimestamp.class);
 		job.setOutputValueClass(CabTripSegment.class);
@@ -61,9 +69,9 @@ public class CabTrips extends Configured implements Tool{
 	*/
 	public static void main(String[] args) throws Exception {
 		// Make sure there are exactly 2 parameters
-		if (args.length != 2) {
-			theLogger.warn("CabTrips <input-file> <output-dir>");
-			throw new IllegalArgumentException("CabTrips <input-dir> <output-dir>");
+		if (args.length < 2) {
+			theLogger.warn("CabTrips <input-file> <output-dir> [<num-reduce-tasks>]");
+			throw new IllegalArgumentException("Usage: CabTrips <input-dir> <output-dir> [<num-reduce-tasks>]");
 		}
 
 		int returnStatus = submitJob(args);
