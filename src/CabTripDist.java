@@ -2,7 +2,6 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -112,21 +111,17 @@ public class CabTripDist {
 		private IntWritable result = new IntWritable();
 
 		// K=km, N=nautical miles, M=statute mile
-		private String unit;
 		private int numBands;
 		private double maxDist;
 		private double bandwidth;
-		private double sanityLimit;
 		private double distBandLimits[];
 
 		@Override
 		public void setup(Context context) {
 			Configuration conf = context.getConfiguration();
-			unit = conf.get("unit");
 			maxDist = conf.getDouble("maxDist", 100d);
 			bandwidth = conf.getDouble("bandwidth", 1d);
 			numBands = (int)(maxDist/bandwidth) + 1;
-			sanityLimit = conf.getDouble("sanityLimit", 200d);
 
 			distBandLimits = setBandLimits(numBands, maxDist, bandwidth);
 		}

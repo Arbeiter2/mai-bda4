@@ -2,19 +2,13 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.TimeZone;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, Text> {
+public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabTripSegment> {
 
 	private Text taxi_id = new Text();
-	static private Text unused = new Text("");
-	private LongWritable start_date = new LongWritable();
-	private Text raw_data = new Text();
 	private VehicleIDTimestamp vehicleTs = new VehicleIDTimestamp();
 	protected static TimeZone timeZone = TimeZone.getTimeZone("US/Pacific");
 	protected static DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS");
@@ -46,30 +40,49 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, Text
 
 		taxi_id.set(tokens[0]);
 		
-		// replace string representation of timestamps with string representation of epoch time
-		long start = -1l;
+		
+		// parse string timestamps into epoch time, and latitude/longitude strings into longs
+		long start_epoch = -1l;
+		long end_epoch = -1l;
 		try {
-			start = formatter.parse(tokens[1]).getTime()/1000;
-			tokens[1] = Long.toString(start);
-			tokens[5] = Long.toString(formatter.parse(tokens[5]).getTime()/1000);
+			// parse dates and reject if they are invalid
+			start_epoch = formatter.parse(tokens[1]).getTime()/1000;
+			end_epoch = formatter.parse(tokens[5]).getTime()/1000;
+			if (!(end_epoch > start_epoch))
+				return;
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Bad date string(s): "+ value.toString());
+			return;
+		}
+		
+		// parse latitude/longitude values
+		double start_lat = 0d;		// latitude at segment start
+		double start_long = 0d;		// longitude at segment end
+		double end_lat = 0d;		// latitude at segment end
+		double end_long= 0d;		// longitude at segment end
+		try {
+			start_lat = Double.parseDouble(tokens[2]);
+			start_long = Double.parseDouble(tokens[3]);
+			end_lat = Double.parseDouble(tokens[6]);
+			end_long = Double.parseDouble(tokens[7]);
+			
+			// fail if the lat/long is outside permitted range
+			if (Math.abs(start_lat) > 90d || Math.abs(start_long) > 180d || 
+				Math.abs(end_lat) > 90d || Math.abs(end_long) > 180d)
+				return;
+		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			System.out.println("Bad date string(s): "+ value.toString());
 			return;
 		}
 
-		start_date.set(Long.parseLong(tokens[1]));
+		CabTripSegment seg = new CabTripSegment(tokens[4], start_epoch, start_lat, start_long, 
+				tokens[8], end_epoch, end_lat, end_long);
 		
-		// create a string consisting of all the fields comma separated in input  order
-		//raw_data.set(String.join(",", Arrays.copyOfRange(tokens, 1, tokens.length)));
-		raw_data.set( StringUtils.join( Arrays.copyOfRange(tokens, 1, tokens.length), ",") );
-
 		vehicleTs.setvehicleID(taxi_id);
-		vehicleTs.settimestamp(start);
-		//vehicleTs.setTripData(raw_data);
+		vehicleTs.settimestamp(start_epoch);
 		
-		//System.out.println(vehicleTs.toString());// + "\n" + raw_data.toString());
-		context.write(vehicleTs, raw_data);
+		context.write(vehicleTs, seg);
 	}
 }

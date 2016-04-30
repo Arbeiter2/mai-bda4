@@ -20,6 +20,7 @@ public class CabTripReducer
 	 * @author Delano
 	 * helper class for constructing list of segments
 	 */
+	/*
 	protected class CabTripSegment {
 		long timestamp;
 		double latitude;
@@ -44,7 +45,7 @@ public class CabTripReducer
 			
 			return s.toString();
 		}
-	}
+	}*/
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
@@ -97,7 +98,7 @@ public class CabTripReducer
 			segList = new ArrayList<CabTripSegment>();
 			segments.put(taxi_id, segList);
 		}
-		System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
+		//System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		segList.add(seg);
 		
 		return true;
@@ -163,7 +164,7 @@ public class CabTripReducer
 		if (running)
 		{
 			//inTrip.put(taxi_id, false);
-			System.out.println("!+Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
+			//System.out.println("!+Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 			clearSegments(taxi_id);
 			
 			return false;
@@ -173,7 +174,7 @@ public class CabTripReducer
 			inTrip.put(taxi_id, true);
 			currTripNum = currTripNum + 1;
 			tripCounter.put(taxi_id, currTripNum);
-			System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
+			//System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 
 			return true;
 		}
@@ -188,9 +189,9 @@ public class CabTripReducer
 	 */
 	protected static boolean endTrip(Text taxi_id)
 	{
-		Integer currTripNum = tripCounter.get(taxi_id);
-		if (currTripNum != null)
-			System.out.println("--Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
+		//Integer currTripNum = tripCounter.get(taxi_id);
+		//if (currTripNum != null)
+		//	System.out.println("--Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 		//else
 		//	System.out.println("Bad trip for taxi_id ["+taxi_id.toString()+"]");
 		
@@ -210,46 +211,57 @@ public class CabTripReducer
 	}	
 	
 
-	public void reduce(VehicleIDTimestamp key, Iterable<Text> v, Context context)
+	/**
+	 * @param key VehicleIDTimetamp
+	 * @param values all associated CabTripSegments for this VehicleID
+	 * @param context
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * 
+	 * writes out complete trips in the following format
+	 * 
+	 * taxi_id,sequence_number<\t><segment>[,<segment>,...]
+	 * 
+	 * where <segment> is a tuple consisting of two components:
+	 * 
+	 * <segment> = <start-marker>,<end-marker>
+	 * 
+	 * where <start-marker> and <end-marker> are both <marker> objects:
+	 * 
+	 * <marker> = <epoch time>,<latitude>,<longitude>
+	 * 
+	 * Thus complete segment consists of six (6) numerical components
+	 * 
+	 * <segment> = <start-epoch-time>,<start-latitude>,<start-longitude>,<end-epoch-time>,<end-latitude>,<end-longitude>
+	 */
+	public void reduce(VehicleIDTimestamp key, Iterable<CabTripSegment> values, Context context)
 			throws IOException, InterruptedException {
 
 		taxi_id = key.getVehicleID();
-		//values = key.getTripData();
+
 		boolean retVal;
-		/*for (Text val : v) {
-			System.out.println(taxi_id.toString() + "\t" + val);
-		}*/
-		
-		for (Text values : v) {
-			String[] tokens = values.toString().replace("'", "").trim().split(",");
+		for (CabTripSegment seg : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
-			long start = Long.parseLong(tokens[0]);
-			double start_lat = Double.parseDouble(tokens[1]); 
-			double start_long = Double.parseDouble(tokens[2]);
-			String start_status = tokens[3];
-			
-			long end = Long.parseLong(tokens[4]);
-			double end_lat = Double.parseDouble(tokens[5]);			
-			double end_long = Double.parseDouble(tokens[6]);
-			String end_status = tokens[7];
+			String start_status = seg.getStart_status();
+			String end_status = seg.getEnd_status();
 			
 			// meter started within record - new trip
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
 				startTrip(taxi_id);
-				addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
+				addSegment(taxi_id, seg);
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
 			{
-				addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
+				addSegment(taxi_id, seg);
 			}
 			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
 			{
 				//retVal = addSegment(taxi_id, new CabTripSegment(start, start_lat, start_long));
-				retVal = addSegment(taxi_id, new CabTripSegment(end, end_lat, end_long));
+				retVal = addSegment(taxi_id, seg);
 				
 				// if we got a failure, delete current trip and return
 				if (!retVal)
@@ -268,6 +280,8 @@ public class CabTripReducer
 						s.append(segList[i]);
 						s.append(",");
 					}
+					
+					// get output key as (taxi_id,taxi_trip_number)
 					trip_id.set(getCurrentTripID(taxi_id));
 					s.append(segList[segList.length-1]);
 					segmentString.set(s.toString());
