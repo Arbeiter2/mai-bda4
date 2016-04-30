@@ -7,11 +7,11 @@ all: Exercise1.jar Exercise2.jar
 clean:
 	rm *class Exercise1.jar Exercise2.jar
 
-CabTripDist.class: src/CabTripDist.java
-	$(JAVAC) src/CabTripDist.java
 GeoDistanceCalc.class: src/GeoDistanceCalc.java
 	$(JAVAC) src/GeoDistanceCalc.java
-Exercise1.jar:	CabTripDist.class GeoDistanceCalc.class
+CabTripDist.class: src/CabTripDist.java
+	$(JAVAC) src/CabTripDist.java
+Exercise1.jar:	GeoDistanceCalc.class CabTripDist.class
 	cd bin && jar cf Exercise1.jar CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
 
 CabTripMapper.class: src/CabTripMapper.java
@@ -27,7 +27,7 @@ VehicleIDTimestampPartitioner.class: src/VehicleIDTimestampPartitioner.java
 CabTrips.class: src/CabTrips.java
 	$(JAVAC) src/CabTrips.java
 
-Exercise2.jar:	CabTrips.class GeoDistanceCalc.class
+Exercise2.jar:	VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class GeoDistanceCalc.class CabTripMapper.class CabTripReducer.class CabTrips.class
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class \
 		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class
