@@ -1,5 +1,5 @@
-CLASSPATH = .:/usr/lib/jvm/default-java/lib:/home/u0098478/cluster1_conf:/home/u0098478/cluster1_conf:/home/u0098478/cluster1_conf:/home/u0098478/hadoop-2.6.0/share/hadoop/common/lib/*:/home/u0098478/hadoop-2.6.0/share/hadoop/common/*:/home/u0098478/hadoop-2.6.0/share/hadoop/hdfs:/home/u0098478/hadoop-2.6.0/share/hadoop/hdfs/lib/*:/home/u0098478/hadoop-2.6.0/share/hadoop/hdfs/*:/home/u0098478/hadoop-2.6.0/share/hadoop/yarn/lib/*:/home/u0098478/hadoop-2.6.0/share/hadoop/yarn/*:/home/u0098478/hadoop-2.6.0/share/hadoop/mapreduce/lib/*:/home/u0098478/hadoop-2.6.0/share/hadoop/mapreduce/*:/contrib/capacity-scheduler/*.jar:/home/u0098478/hadoop-2.6.0/share/hadoop/yarn/*:/home/u0098478/hadoop-2.6.0/share/hadoop/yarn/lib/*
-JAVAC = javac -cp $(CLASSPATH)
+CLASSPATH = .:bin:$(shell yarn classpath)
+JAVAC = javac -cp $(CLASSPATH) -d bin
 
 
 all: Exercise1.jar Exercise2.jar
@@ -7,27 +7,27 @@ all: Exercise1.jar Exercise2.jar
 clean:
 	rm *class Exercise1.jar Exercise2.jar
 
-CabTripDist.class:	CabTripDist.java
-	$(JAVAC) CabTripDist.java
-GeoDistanceCalc.class:	GeoDistanceCalc.java
-	$(JAVAC) GeoDistanceCalc.java
+CabTripDist.class: src/CabTripDist.java
+	$(JAVAC) src/CabTripDist.java
+GeoDistanceCalc.class: src/GeoDistanceCalc.java
+	$(JAVAC) src/GeoDistanceCalc.java
 Exercise1.jar:	CabTripDist.class GeoDistanceCalc.class
-	jar cf Exercise1.jar CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
+	cd bin && jar cf Exercise1.jar CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
 
-CabTripMapper.class:	CabTripMapper.java
-	$(JAVAC) CabTripMapper.java
-CabTripReducer.class:	CabTripReducer.java
-	$(JAVAC) CabTripReducer.java
-VehicleIDTimestamp.class:	VehicleIDTimestamp.java
-	$(JAVAC) VehicleIDTimestamp.java
-VehicleIDTimestampComparator.class:	VehicleIDTimestampComparator.java
-	$(JAVAC) VehicleIDTimestampComparator.java
-VehicleIDTimestampPartitioner.class:	VehicleIDTimestampPartitioner.java
-	$(JAVAC) VehicleIDTimestampPartitioner.java
-CabTrips.class:	CabTrips.java
-	$(JAVAC) CabTrips.java
+CabTripMapper.class: src/CabTripMapper.java
+	$(JAVAC) src/CabTripMapper.java
+CabTripReducer.class: src/CabTripReducer.java
+	$(JAVAC) src/CabTripReducer.java
+VehicleIDTimestamp.class: src/VehicleIDTimestamp.java
+	$(JAVAC) src/VehicleIDTimestamp.java
+VehicleIDTimestampComparator.class: src/VehicleIDTimestampComparator.java
+	$(JAVAC) src/VehicleIDTimestampComparator.java
+VehicleIDTimestampPartitioner.class: src/VehicleIDTimestampPartitioner.java
+	$(JAVAC) src/VehicleIDTimestampPartitioner.java
+CabTrips.class: src/CabTrips.java
+	$(JAVAC) src/CabTrips.java
 
 Exercise2.jar:	CabTrips.class GeoDistanceCalc.class
-	jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
+	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class \
 		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class
