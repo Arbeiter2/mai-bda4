@@ -30,7 +30,7 @@ public class CabTrips extends Configured implements Tool{
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
 		job.setOutputKeyClass(VehicleIDTimestamp.class);
-		job.setOutputValueClass(Text.class);
+		job.setOutputValueClass(CabTripSegment.class);
 		
     	job.setMapperClass(CabTripMapper.class);
     	job.setReducerClass(CabTripReducer.class);		

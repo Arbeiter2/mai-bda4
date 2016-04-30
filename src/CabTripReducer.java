@@ -9,43 +9,12 @@ import org.apache.hadoop.mapreduce.Reducer;
  *
  */
 public class CabTripReducer
-	extends Reducer<VehicleIDTimestamp, Text, Text, Text> {
+	extends Reducer<VehicleIDTimestamp, CabTripSegment, Text, Text> {
 
 
 	private Text taxi_id;
 	private Text trip_id = new Text();
 	private Text segmentString = new Text();
-	
-	/**
-	 * @author Delano
-	 * helper class for constructing list of segments
-	 */
-	/*
-	protected class CabTripSegment {
-		long timestamp;
-		double latitude;
-		double longitude;
-		
-		public CabTripSegment(long ts, double lat, double lng)
-		{
-			timestamp = ts;
-			latitude = lat;
-			longitude = lng;
-		}
-		
-		@Override
-		public String toString()
-		{
-			StringBuilder s = new StringBuilder();
-			s.append(Long.toString(timestamp));
-			s.append(",");
-			s.append(Double.toString(latitude));
-			s.append(",");
-			s.append(Double.toString(longitude));
-			
-			return s.toString();
-		}
-	}*/
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
@@ -243,8 +212,8 @@ public class CabTripReducer
 		for (CabTripSegment seg : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
-			String start_status = seg.getStart_status();
-			String end_status = seg.getEnd_status();
+			String start_status = seg.getStart_status().toString();
+			String end_status = seg.getEnd_status().toString();
 			
 			// meter started within record - new trip
 			if (start_status.equals("E") && end_status.equals("M"))
