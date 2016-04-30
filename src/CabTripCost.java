@@ -28,8 +28,10 @@ public class CabTripCost extends Configured implements Tool {
 	 */
 	public int run(String[] args) throws Exception {
 		Configuration conf = new Configuration();
+		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t");
 
 		Job job = Job.getInstance(conf, "Cab trip cost calc");
+
 	    FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
@@ -49,6 +51,9 @@ public class CabTripCost extends Configured implements Tool {
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 		
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
+
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 

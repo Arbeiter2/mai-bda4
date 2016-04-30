@@ -3,7 +3,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CabTripCostMapper extends Mapper<Object, Text, Text, Text> {
+public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	private Text trip_cost = new Text();
 	private static String unit = "K";
 
@@ -86,7 +86,7 @@ public class CabTripCostMapper extends Mapper<Object, Text, Text, Text> {
 				if (tdiff < 0)
 					throw new IOException("Segment timestamps out of sequence");
 				else if (tdiff > 600)
-					throw new IOException("Gap betweens segments > 10 minutes");
+					throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
 				
 				// check whether this inter-segment journey passes within range of the airport
 				if (GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
@@ -98,7 +98,7 @@ public class CabTripCostMapper extends Mapper<Object, Text, Text, Text> {
 			
 			// reject segments with average speed over 200 kmh
 			if ((3600*seg_dist)/(end_ts-start_ts) > 200d)
-				throw new IOException("Segment speed > 200 kph");
+				throw new IOException("Segment speed > 200 kph: "+Double.toString(seg_dist)+" km in "+Double.toString(end_ts-start_ts)+"s");
 			trip_length += seg_dist;
 			
 			// check whether this segment journey passes within range of the airport
@@ -142,10 +142,14 @@ public class CabTripCostMapper extends Mapper<Object, Text, Text, Text> {
 		// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 
 		// trip_ident should be <taxi_id>,<sequence-number>
+		//System.out.println(key.toString()+"\t"+value.toString());
+
 		if (key.toString().split(",").length < 2)
 			throw new IOException("Malformed trip ident");
 		
 		// calculate trip distance, and if valid, emit with trip ident
+		try
+		{
 		double dist = CabTripCostMapper.getTripLength(value.toString());
 		double cost;
 		if (dist!= -1d)
@@ -154,6 +158,11 @@ public class CabTripCostMapper extends Mapper<Object, Text, Text, Text> {
 			trip_cost.set(Double.toString(cost));
 			
 			context.write(key, trip_cost);
+		}
+		} catch (IOException e)
+		{
+			// do nothing
+			System.out.println(e.getMessage());
 		}
 	}
 }
