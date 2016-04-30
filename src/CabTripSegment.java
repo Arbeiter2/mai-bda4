@@ -39,6 +39,18 @@ public class CabTripSegment implements Writable {
         this.end_long.set(end_long);
 	}
 
+    public CabTripSegment(CabTripSegment seg) {
+        this.start_status.set(seg.start_status.toString());
+        this.start_timestamp.set(seg.start_timestamp.get());
+        this.start_lat.set(seg.start_lat.get());
+        this.start_long.set(seg.start_long.get());
+
+        this.end_status.set(seg.end_status.toString());
+        this.end_timestamp.set(seg.end_timestamp.get());
+        this.end_lat.set(seg.end_lat.get());
+        this.end_long.set(seg.end_long.get());
+    }
+
     public CabTripSegment() {
     }
 
@@ -97,6 +109,14 @@ public class CabTripSegment implements Writable {
 		return s.toString();
 	}
 	
+	public static boolean follows(CabTripSegment a, CabTripSegment b)
+	{
+		if (a == null || b == null)
+			return false;
+
+		return (a.end_lat.equals(b.start_lat) && a.end_long.equals(b.start_long));
+	}
+
 	public Text getStart_status() {
 		return start_status;
 	}

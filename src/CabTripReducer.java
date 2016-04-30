@@ -12,16 +12,16 @@ public class CabTripReducer
 	extends Reducer<VehicleIDTimestamp, CabTripSegment, Text, Text> {
 
 
-	private Text taxi_id;
+	private Text taxi;
 	private Text trip_id = new Text();
 	private Text segmentString = new Text();
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
 	 */
-	protected static HashMap<Text, Integer> tripCounter = new HashMap<Text, Integer>();
-	protected static HashMap<Text, Boolean> inTrip = new HashMap<Text, Boolean>();
-	protected static HashMap<Text, ArrayList<CabTripSegment>> segments = new HashMap<Text, ArrayList<CabTripSegment>>();
+	protected HashMap<Text, Integer> tripCounter = new HashMap<Text, Integer>();
+	protected HashMap<Text, Boolean> inTrip = new HashMap<Text, Boolean>();
+	protected HashMap<Text, ArrayList<CabTripSegment>> segments = new HashMap<Text, ArrayList<CabTripSegment>>();
 
 	
 
@@ -29,7 +29,7 @@ public class CabTripReducer
 	 * @param taxi_id
 	 * @return String representation of trip ID
 	 */
-	protected static String getCurrentTripID(Text taxi_id)
+	protected String getCurrentTripID(Text taxi_id)
 	{
 		Boolean running = inTrip.get(taxi_id);
 		if (running == null || running.booleanValue() == false)
@@ -67,8 +67,8 @@ public class CabTripReducer
 			segList = new ArrayList<CabTripSegment>();
 			segments.put(taxi_id, segList);
 		}
-		//System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		segList.add(seg);
+	//System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
 		
 		return true;
 	}
@@ -78,7 +78,7 @@ public class CabTripReducer
 	 * delete all segments from current trip
 	 * @param taxi_id
 	 */
-	protected static void clearSegments(Text taxi_id)
+	protected void clearSegments(Text taxi_id)
 	{
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList != null)
@@ -93,18 +93,16 @@ public class CabTripReducer
 	 * @param taxi_id
 	 * @return array of CabTripSegments, or null if no segments found
 	 */
-	protected static CabTripSegment[] getSegments(Text taxi_id)
+	protected CabTripSegment[] getSegments(Text taxi_id)
 	{
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
-		if (segList != null && segList.size() > 0)
-		{
-			CabTripSegment[] csArray = segList.toArray(new CabTripSegment[0]);
-			return csArray;
-		}
-		else
+		if (segList == null || segList.size() == 0)
 		{
 			return null;
 		}
+
+		CabTripSegment[] csArray = segList.toArray(new CabTripSegment[0]);
+		return csArray;
 	}
 	
 	
@@ -114,7 +112,7 @@ public class CabTripReducer
 	 * @param taxi_id
 	 * @return true if trip start successful, false otherwise
 	 */
-	protected static boolean startTrip(Text taxi_id)
+	protected boolean startTrip(Text taxi_id)
 	{
 		Boolean running = inTrip.get(taxi_id);
 		
@@ -123,7 +121,7 @@ public class CabTripReducer
 		{
 			inTrip.put(taxi_id, true);
 			tripCounter.put(taxi_id, 1);
-			System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[1]");
+			//System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[1]");
 			
 			return true;
 		}
@@ -156,7 +154,7 @@ public class CabTripReducer
 	 * @param taxi_id
 	 * @return
 	 */
-	protected static boolean endTrip(Text taxi_id)
+	protected boolean endTrip(Text taxi_id)
 	{
 		//Integer currTripNum = tripCounter.get(taxi_id);
 		//if (currTripNum != null)
@@ -206,41 +204,42 @@ public class CabTripReducer
 	public void reduce(VehicleIDTimestamp key, Iterable<CabTripSegment> values, Context context)
 			throws IOException, InterruptedException {
 
-		taxi_id = key.getVehicleID();
+		taxi = key.getVehicleID();
 
 		boolean retVal;
-		for (CabTripSegment seg : values) {
+		for (CabTripSegment segment : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
+			CabTripSegment seg = new CabTripSegment(segment);
 			String start_status = seg.getStart_status().toString();
 			String end_status = seg.getEnd_status().toString();
 			
 			// meter started within record - new trip
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
-				startTrip(taxi_id);
-				addSegment(taxi_id, seg);
+				startTrip(taxi);
+				addSegment(taxi, seg);
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
 			{
-				addSegment(taxi_id, seg);
+				addSegment(taxi, seg);
 			}
 			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
 			{
 				//retVal = addSegment(taxi_id, new CabTripSegment(start, start_lat, start_long));
-				retVal = addSegment(taxi_id, seg);
+				retVal = addSegment(taxi, seg);
 				
 				// if we got a failure, delete current trip and return
 				if (!retVal)
 				{
-					endTrip(taxi_id);
+					endTrip(taxi);
 					return;
 				}
 
 				// build string out of array of segments
-				CabTripSegment[] segList = getSegments(taxi_id);
+				CabTripSegment[] segList = getSegments(taxi);
 				if (segList != null)
 				{
 					StringBuilder s = new StringBuilder();
@@ -251,7 +250,7 @@ public class CabTripReducer
 					}
 					
 					// get output key as (taxi_id,taxi_trip_number)
-					trip_id.set(getCurrentTripID(taxi_id));
+					trip_id.set(getCurrentTripID(taxi));
 					s.append(segList[segList.length-1]);
 					segmentString.set(s.toString());
 					
@@ -260,10 +259,10 @@ public class CabTripReducer
 				}
 				else
 				{
-					System.out.println("Empty segList for "+taxi_id.toString());
+					System.out.println("Empty segList for "+taxi.toString());
 				}
 				
-				endTrip(taxi_id);
+				endTrip(taxi);
 			}
 		}
 	}

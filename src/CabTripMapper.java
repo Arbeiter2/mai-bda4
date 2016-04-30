@@ -73,13 +73,14 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 				return;
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			System.out.println("Bad date string(s): "+ value.toString());
+			System.out.println("Bad coordinates(s): "+ value.toString());
 			return;
 		}
 
 		CabTripSegment seg = new CabTripSegment(tokens[4], start_epoch, start_lat, start_long, 
 				tokens[8], end_epoch, end_lat, end_long);
 		
+		//System.out.println(taxi_id.toString()+","+seg.toString());
 		vehicleTs.setvehicleID(taxi_id);
 		vehicleTs.settimestamp(start_epoch);
 		
