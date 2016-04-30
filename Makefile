@@ -14,6 +14,8 @@ CabTripDist.class: src/CabTripDist.java
 Exercise1.jar:	GeoDistanceCalc.class CabTripDist.class
 	cd bin && jar cf Exercise1.jar CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
 
+CabTripSegment.class: src/CabTripSegment.java
+	$(JAVAC) src/CabTripSegment.java
 CabTripMapper.class: src/CabTripMapper.java
 	$(JAVAC) src/CabTripMapper.java
 CabTripReducer.class: src/CabTripReducer.java
@@ -27,7 +29,7 @@ VehicleIDTimestampPartitioner.class: src/VehicleIDTimestampPartitioner.java
 CabTrips.class: src/CabTrips.java
 	$(JAVAC) src/CabTrips.java
 
-Exercise2.jar:	VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class GeoDistanceCalc.class CabTripMapper.class CabTripReducer.class CabTrips.class
+Exercise2.jar:	VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class GeoDistanceCalc.class CabTripSegment.class CabTripMapper.class CabTripReducer.class CabTrips.class
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class \
-		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class
+		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class CabTripSegment.class
