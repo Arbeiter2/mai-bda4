@@ -90,16 +90,16 @@ public class CabTripSegment implements Writable {
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		//s.append(start_status);
-		//s.append(",");
+		s.append(start_status);
+		s.append(",");
+		s.append(end_status);
+		s.append(",");
 		s.append(start_timestamp.toString());
 		s.append(",");
 		s.append(start_lat.toString());
 		s.append(",");
 		s.append(start_long.toString());
 		s.append(",");
-		//s.append(end_status);
-		//s.append(",");
 		s.append(end_timestamp.toString());
 		s.append(",");
 		s.append(end_lat.toString());
