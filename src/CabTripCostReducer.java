@@ -1,14 +1,13 @@
 import java.io.IOException;
 
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 public class CabTripCostReducer 
-	extends Reducer<LongWritable, Text, Text, Text> {
+	extends Reducer<CabTripCostRecord, Text, Text, Text> {
 
 	private Text keyStr = new Text();
-	public void reduce(LongWritable key, Iterable<Text> values, Context context)
+	public void reduce(CabTripCostRecord key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
 		for (Text t : values)
 		{
