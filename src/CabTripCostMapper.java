@@ -7,6 +7,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	private Text trip_cost = new Text();
+	private static String trip_id;
 	private static String unit = "K";
 
 	// K=km, N=nautical miles, M=statute mile
@@ -151,6 +152,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 			last_lat = end_lat;
 			last_long = end_long;
 		}
+		System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
 		
 		// if the trip was not within tange of airport, return -1
 		if (in_airport_range)
@@ -191,6 +193,8 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 
 		if (key.toString().split(",").length < 2)
 			throw new IOException("Malformed trip ident");
+		
+		trip_id = key.toString();
 		
 		// create segment objects from semicolon string list; bomb if any parse errors found
 		CabTripSegment[] segments = parse(value.toString());
