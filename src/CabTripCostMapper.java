@@ -26,7 +26,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 	
 	@Override
 	public void setup(Context context) {
-		theLogger.setLevel(Level.DEBUG);
+		theLogger.setLevel(Level.INFO);
 		
 		Configuration conf = context.getConfiguration();
 		

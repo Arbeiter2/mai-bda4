@@ -2,9 +2,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -34,7 +32,7 @@ public class CabTripReducer
             throws IOException,
             InterruptedException
     {
-		theLogger.setLevel(Level.DEBUG);
+		theLogger.setLevel(Level.INFO);
 	}
 	
 	/**
@@ -80,7 +78,7 @@ public class CabTripReducer
 			segments.put(taxi_id, segList);
 		}
 		segList.add(seg);
-		//theLogger.debug("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
+		//theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
 		
 		return true;
 	}
@@ -96,7 +94,7 @@ public class CabTripReducer
 		if (segList != null)
 		{
 			if (running)
-				theLogger.debug("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
+				theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
 
 			segList.clear();
 		}
@@ -143,7 +141,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			theLogger.debug("startTrip("+taxi_id.toString()+"): Trashing nr ["+currTripNum.toString()+"]");
+			theLogger.info("startTrip("+taxi_id.toString()+"): Trashing nr ["+currTripNum.toString()+"]");
 			clearSegments(taxi_id, running);
 			return false;
 		}
@@ -198,7 +196,7 @@ public class CabTripReducer
 			throws IOException, InterruptedException {
 
 		taxi = key.getVehicleID();
-		theLogger.debug("R:"+key.toString() + "::" + values.toString());
+		theLogger.info("R:"+key.toString() + "::" + values.toString());
 
 		boolean retVal;
 		for (CabTripSegment segment : values) {
