@@ -5,9 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.log4j.Logger;
 
 public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabTripSegment> {
 
+
+	private static Logger theLogger = Logger.getLogger(CabTripMapper.class);
 	private Text taxi_id = new Text();
 	private VehicleIDTimestamp vehicleTs = new VehicleIDTimestamp();
 	protected static TimeZone timeZone = TimeZone.getTimeZone("US/Pacific");
@@ -51,8 +54,7 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 			if (!(end_epoch > start_epoch))
 				return;
 		} catch (ParseException e) {
-			e.printStackTrace();
-			System.out.println("Bad date string(s): "+ value.toString());
+			theLogger.error( e.getMessage(), e );
 			return;
 		}
 		

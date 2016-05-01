@@ -1,11 +1,13 @@
 import java.io.IOException;
 import java.util.ArrayList;
-
+import org.apache.log4j.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Text> {
+	private static Logger theLogger = Logger.getLogger(CabTripCostMapper.class);
+
 	private Text trip_cost = new Text();
 	private static String trip_id;
 	private static String unit = "K";
@@ -154,7 +156,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			last_lat = end_lat;
 			last_long = end_long;
 		}
-		System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
+		//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
 		
 		// if the trip was not within tange of airport, return -1
 		if (in_airport_range)
@@ -189,9 +191,6 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 	public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 		// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
-
-		// trip_ident should be <taxi_id>,<sequence-number>
-		//System.out.println(key.toString()+"\t"+value.toString());
 
 		if (key.toString().split(",").length < 2)
 			throw new IOException("Malformed trip ident");
@@ -235,7 +234,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		} catch (IOException e)
 		{
 			// do nothing
-			System.out.println(e.getMessage());
+			theLogger.error( e.getMessage(), e );
 		}
 	}
 }

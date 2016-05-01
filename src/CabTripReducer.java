@@ -121,8 +121,6 @@ public class CabTripReducer
 		{
 			inTrip.put(taxi_id, true);
 			tripCounter.put(taxi_id, 1);
-			//System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[1]");
-			
 			return true;
 		}
 
@@ -130,10 +128,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			//inTrip.put(taxi_id, false);
-			//System.out.println("!+Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
 			clearSegments(taxi_id);
-			
 			return false;
 		}
 		else 
@@ -141,8 +136,6 @@ public class CabTripReducer
 			inTrip.put(taxi_id, true);
 			currTripNum = currTripNum + 1;
 			tripCounter.put(taxi_id, currTripNum);
-			//System.out.println("++Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
-
 			return true;
 		}
 	}
@@ -156,25 +149,9 @@ public class CabTripReducer
 	 */
 	protected boolean endTrip(Text taxi_id)
 	{
-		//Integer currTripNum = tripCounter.get(taxi_id);
-		//if (currTripNum != null)
-		//	System.out.println("--Taxi["+taxi_id.toString()+"]::Trip[" + currTripNum.toString() + "]");
-		//else
-		//	System.out.println("Bad trip for taxi_id ["+taxi_id.toString()+"]");
-		
-		// brand new taxi on this reduce node
-		//if (running != null && running)
-		//{
-			inTrip.put(taxi_id, false);
-			clearSegments(taxi_id);
-			return true;
-		//}
-		//else
-		//{
-			//return false;
-		//}
-		
-		
+		inTrip.put(taxi_id, false);
+		clearSegments(taxi_id);
+		return true;
 	}	
 	
 
@@ -228,7 +205,6 @@ public class CabTripReducer
 			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
 			{
-				//retVal = addSegment(taxi_id, new CabTripSegment(start, start_lat, start_long));
 				retVal = addSegment(taxi, seg);
 				
 				// if we got a failure, delete current trip and return
@@ -248,7 +224,6 @@ public class CabTripReducer
 						s.append(segList[i]);
 						s.append(";");
 					}
-					System.out.println(s.toString());
 					
 					// get output key as (taxi_id,taxi_trip_number)
 					trip_id.set(getCurrentTripID(taxi));
@@ -260,11 +235,11 @@ public class CabTripReducer
 				}
 				else
 				{
-					System.out.println("Empty segList for "+taxi.toString());
+					//System.out.println("Empty segList for "+taxi.toString());
 				}
 				
 				endTrip(taxi);
 			}
 		}
-	}
+	}	
 }

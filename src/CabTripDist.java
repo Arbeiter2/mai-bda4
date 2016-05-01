@@ -8,9 +8,11 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.log4j.Logger;
 
 public class CabTripDist {
-	
+
+	private static Logger theLogger = Logger.getLogger(CabTripDist.class);
 
 	protected static double[] setBandLimits(int numBands, double maxDist, 
 		double bandwidth)
@@ -75,11 +77,10 @@ public class CabTripDist {
 					context.write(Band, zero);
 				}
 			} catch (IOException e) {
-				//do something clever with the exception
-				System.out.println(e.getMessage());
+				theLogger.error( e.getMessage(), e );
+
 			} catch (InterruptedException e) {
-				//do something clever with the exception
-				System.out.println(e.getMessage());
+				theLogger.error( e.getMessage(), e );
 			}
 		}
 
