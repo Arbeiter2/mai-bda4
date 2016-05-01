@@ -148,8 +148,9 @@ public class CabTripReducer
 		else 
 		{
 			inTrip.put(taxi_id, true);
-			currTripNum = currTripNum + 1;
-			tripCounter.put(taxi_id, currTripNum);
+			if (currTripNum == null)
+				currTripNum = new Integer(0);
+			tripCounter.put(taxi_id, currTripNum+1);
 			return true;
 		}
 	}
@@ -236,12 +237,13 @@ public class CabTripReducer
 		theLogger.info("R:"+key.toString() + "::" + values.toString());
 
 		CabTripSegment last = null;
+		boolean newTrip = true;
 		for (CabTripSegment segment : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 			
 			// discard segments starting before end of last one
-			if (last != null 
+			if (!newTrip && last != null 
 					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
 			{
 				theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
@@ -258,11 +260,12 @@ public class CabTripReducer
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
 				// newly started
-				if (last == null)
+				if (newTrip)
 				{
 					// then start a new one
 					startTrip(taxi);
 					addSegment(taxi, seg);
+					newTrip = false;
 				}
 				else
 				{
@@ -288,6 +291,7 @@ public class CabTripReducer
 			else if (start_status.equals("M") && end_status.equals("M"))
 			{
 				addSegment(taxi, seg);
+				newTrip = false;
 			}
 			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
@@ -297,6 +301,7 @@ public class CabTripReducer
 				// emit current trip and close it
 				emit(context);
 				endTrip(taxi);
+				newTrip = true;
 			}
 			last = seg;
 		}

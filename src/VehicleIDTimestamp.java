@@ -58,7 +58,8 @@ public class VehicleIDTimestamp
 
     //@Override
     public int compareTo(VehicleIDTimestamp pair) {
-        int compareValue = this.vehicleID.compareTo(pair.getVehicleID());
+        int compareValue = Integer.parseInt(this.getVehicleID().toString()) -
+			Integer.parseInt(pair.getVehicleID().toString());
         if (compareValue == 0) {
             compareValue = timestamp.compareTo(pair.gettimestamp());
         }

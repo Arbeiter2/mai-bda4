@@ -8,7 +8,7 @@ public class VehicleIDTimestampPartitioner
                             CabTripSegment segment, 
                             int numberOfPartitions) {
     	// make sure that partitions are non-negative
-        return Math.abs(pair.getVehicleID().hashCode() % numberOfPartitions);
+        return Integer.parseInt(pair.getVehicleID().toString()) % numberOfPartitions;
     }
 
 }

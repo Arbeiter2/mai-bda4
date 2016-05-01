@@ -18,6 +18,7 @@ public class VehicleIDTimestampComparator
 	 public int compare(WritableComparable  wc1, WritableComparable wc2) {
 		 VehicleIDTimestamp pair = (VehicleIDTimestamp) wc1;
 		 VehicleIDTimestamp pair2 = (VehicleIDTimestamp) wc2;
-	     return pair.getVehicleID().compareTo(pair2.getVehicleID());
+	     int diff = Integer.parseInt(pair.getVehicleID().toString()) - Integer.parseInt(pair2.getVehicleID().toString());
+	     return diff;
 	 }
 }
