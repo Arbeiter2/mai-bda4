@@ -67,6 +67,7 @@ public class CabTripReducer
 	 */
 	protected boolean addSegment(Text taxi_id, CabTripSegment seg)
 	{
+		theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		Boolean running = inTrip.get(taxi_id);
 		if (running == null || !running)
 			return false;
