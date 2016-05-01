@@ -2,13 +2,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
+public class CabTripCostMapper extends Mapper<Text, Text, LongWritable, Text> {
 	private Text trip_cost = new Text();
 	private static String trip_id;
 	private static String unit = "K";
+	private LongWritable start_timestamp_epoch = new LongWritable();
+
 
 	// K=km, N=nautical miles, M=statute mile
 	private static double airport_lat;
@@ -182,7 +185,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	 * 
 	 * Output is in the following form:
 	 * 
-	 * 		<taxi-id>,<taxi-trip-number>,<start-timestamp>,<end-timestamp>,<distance>,<cost>
+	 * 		<start-timestamp>,<end-timestamp>,<distance>,<cost>,<taxi-id>,<taxi-trip-number>
 	 */	
 	public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
@@ -215,17 +218,19 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 			
 			// construct record
 			builder.setLength(0);
-			builder.append(segments[0].getStart_timestamp().get());
-			builder.append(",");
+
 			builder.append(segments[segments.length-1].getEnd_timestamp().get());
 			builder.append(",");
 			builder.append(dist);
 			builder.append(",");
 			builder.append(cost);
+			builder.append(",");
+			builder.append(trip_id);
 			
+			start_timestamp_epoch.set(segments[0].getStart_timestamp().get());
 			trip_cost.set(builder.toString());
 			
-			context.write(key, trip_cost);
+			context.write(start_timestamp_epoch, trip_cost);
 		} catch (IOException e)
 		{
 			// do nothing
