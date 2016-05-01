@@ -3,7 +3,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+
+import org.apache.hadoop.io.MD5Hash;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Logger;
 
@@ -20,6 +23,14 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 		formatter.setTimeZone(timeZone);
 	}
 
+	@Override
+	protected void setup(Context context)
+            throws IOException,
+            InterruptedException
+    {
+		InputSplit is = context.getInputSplit();
+		theLogger.debug("M: splitId["+is.toString()+"]");
+	}
 	
 	public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
