@@ -2,6 +2,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -29,6 +30,8 @@ public class CabTripCost extends Configured implements Tool {
 	public int run(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t");
+        conf.set("mapreduce.output.key.field.separator", ",");
+
 
 		Job job = Job.getInstance(conf, "Cab trip cost calc");
 
@@ -43,7 +46,7 @@ public class CabTripCost extends Configured implements Tool {
 		conf.setDouble("taxi_charge_per_unit_dist", 1.71);
 		
 		// disables reduce step
-		job.setNumReduceTasks(0);
+		//job.setNumReduceTasks(0);
 
 		job.setJarByClass(CabTripCost.class);
 		job.setJobName("CabTrips ["+args[0]+"]");
@@ -51,13 +54,15 @@ public class CabTripCost extends Configured implements Tool {
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 		
-		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputKeyClass(LongWritable.class);
 		job.setMapOutputValueClass(Text.class);
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 
-        job.setMapperClass(CabTripCostMapper.class); 
+        job.setMapperClass(CabTripCostMapper.class);
+        job.setReducerClass(CabTripCostReducer.class); 
+
 
 		boolean status = job.waitForCompletion(true);
 		theLogger.info("run(): status="+status);
