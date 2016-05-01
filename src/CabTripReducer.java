@@ -79,7 +79,6 @@ public class CabTripReducer
 			segments.put(taxi_id, segList);
 		}
 		segList.add(seg);
-		//theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
 		
 		return true;
 	}
@@ -275,16 +274,6 @@ public class CabTripReducer
 						addSegment(taxi, seg);
 					}
 				}
-				// if meter start within record, and more than an hour has passed, new trip
-				if (last != null && 
-					last.getEnd_timestamp().get() - seg.getStart_timestamp().get() > 60L)
-				{
-					// output the trip we were last working on
-					emit(context);
-				}	
-				// then start a new one
-				startTrip(taxi);
-				addSegment(taxi, seg);
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
@@ -296,17 +285,9 @@ public class CabTripReducer
 			{
 				retVal = addSegment(taxi, seg);
 				
-				// if we got a failure, delete current trip and return
-				if (!retVal)
-				{
-					endTrip(taxi);
-				}
-				else
-				{
-					// output record
-					emit(context);
-					endTrip(taxi);
-				}
+				// emit current trip and close it
+				emit(context);
+				endTrip(taxi);
 			}
 			last = seg;
 		}
