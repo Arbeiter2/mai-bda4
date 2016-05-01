@@ -290,7 +290,7 @@ public class CabTripReducer
 			// meter stopped during record - end of trip
 			else if (start_status.equals("M") && end_status.equals("E"))
 			{
-				retVal = addSegment(taxi, seg);
+				addSegment(taxi, seg);
 				
 				// emit current trip and close it
 				emit(context);
