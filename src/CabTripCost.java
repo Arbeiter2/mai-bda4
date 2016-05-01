@@ -45,11 +45,17 @@ public class CabTripCost extends Configured implements Tool {
 		conf.setDouble("taxi_start_charge", 3.50);
 		conf.setDouble("taxi_charge_per_unit_dist", 1.71);
 		
-		// disables reduce step
-		//job.setNumReduceTasks(0);
+		// use user-supplied number of reduce tasks
+		int numReduceTasks = 1;
+		if (args.length > 2)
+		{
+			numReduceTasks = Integer.parseInt(args[2]);
+			if (numReduceTasks > 1)
+				job.setNumReduceTasks(numReduceTasks);
+		}
 
 		job.setJarByClass(CabTripCost.class);
-		job.setJobName("CabTrips ["+args[0]+"]");
+		job.setJobName("CabTripCost ["+args[0]+"], R"+Integer.toString(numReduceTasks));
 
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
@@ -88,7 +94,7 @@ public class CabTripCost extends Configured implements Tool {
 		// Make sure there are exactly 2 parameters
 		if (args.length < 2) {
 			theLogger.warn("CabTripCost <input-file> <output-dir> [<num-reduce-tasks>]");
-			throw new IllegalArgumentException("Usage: CabTrips <input-dir> <output-dir> [<num-reduce-tasks>]");
+			throw new IllegalArgumentException("Usage: CabTripCost <input-dir> <output-dir> [<num-reduce-tasks>]");
 		}
 
 		int returnStatus = submitJob(args);

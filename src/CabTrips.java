@@ -29,11 +29,11 @@ public class CabTrips extends Configured implements Tool{
 		if (args.length > 2)
 		{
 			numReduceTasks = Integer.parseInt(args[2]);
-			if (numReduceTasks > 2)
+			if (numReduceTasks > 1)
 				job.setNumReduceTasks(numReduceTasks);
 		}
 		job.setJarByClass(CabTrips.class);
-		job.setJobName("CabTrips ["+args[0]+"], "+Integer.toString(numReduceTasks)+" reduce tasks");
+		job.setJobName("CabTrips ["+args[0]+"], R"+Integer.toString(numReduceTasks));
 
 		job.setOutputKeyClass(VehicleIDTimestamp.class);
 		job.setOutputValueClass(CabTripSegment.class);
