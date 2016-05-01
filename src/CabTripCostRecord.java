@@ -96,20 +96,17 @@ public class CabTripCostRecord
     @Override
     public int hashCode() {
         int result = start_timestamp != null ? start_timestamp.hashCode() : 0;
-        result = 31 * result + (end_timestamp != null ? end_timestamp.hashCode() : 0);
+        result = 37 * result + (end_timestamp != null ? end_timestamp.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
     	StringBuilder builder = new StringBuilder();
-    	builder.append("CabTripCostRecord{start=");
     	builder.append(start_timestamp);
-    	builder.append(", end=");
+    	builder.append(",");
     	builder.append(end_timestamp);
-    	//builder.append(", text=[");
-    	//builder.append(tripData);
-    	builder.append("}");
+
     	return builder.toString();
     }    
 }
