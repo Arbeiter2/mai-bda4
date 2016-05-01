@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.log4j.Logger;
 
 /**
  * @author Delano
@@ -11,6 +12,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 public class CabTripReducer
 	extends Reducer<VehicleIDTimestamp, CabTripSegment, Text, Text> {
 
+	private static Logger theLogger = Logger.getLogger(CabTrips.class);
 
 	private Text taxi;
 	private Text trip_id = new Text();
@@ -68,7 +70,7 @@ public class CabTripReducer
 			segments.put(taxi_id, segList);
 		}
 		segList.add(seg);
-	//System.out.println("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
+		//theLogger.debug("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]("+Integer.toString(segList.size())+")");
 		
 		return true;
 	}
@@ -78,11 +80,14 @@ public class CabTripReducer
 	 * delete all segments from current trip
 	 * @param taxi_id
 	 */
-	protected void clearSegments(Text taxi_id)
+	protected void clearSegments(Text taxi_id, boolean running)
 	{
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList != null)
 		{
+			if (running)
+				theLogger.debug("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
+
 			segList.clear();
 		}
 	}
@@ -128,7 +133,8 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			clearSegments(taxi_id);
+			theLogger.debug("startTrip("+taxi_id.toString()+"): Trashing nr ["+currTripNum.toString()+"]");
+			clearSegments(taxi_id, running);
 			return false;
 		}
 		else 
@@ -150,7 +156,7 @@ public class CabTripReducer
 	protected boolean endTrip(Text taxi_id)
 	{
 		inTrip.put(taxi_id, false);
-		clearSegments(taxi_id);
+		clearSegments(taxi_id, false);
 		return true;
 	}	
 	
@@ -182,6 +188,7 @@ public class CabTripReducer
 			throws IOException, InterruptedException {
 
 		taxi = key.getVehicleID();
+		theLogger.debug("R:"+key.toString() + "::" + values.toString());
 
 		boolean retVal;
 		for (CabTripSegment segment : values) {
