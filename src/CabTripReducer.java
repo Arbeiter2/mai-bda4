@@ -192,6 +192,8 @@ public class CabTripReducer
 			trip_id.set(getCurrentTripID(taxi));
 			s.append(segList[segList.length-1]);
 			segmentString.set(s.toString());
+
+			theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
 			
 			// emit 
 			context.write(trip_id, segmentString);
