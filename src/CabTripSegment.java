@@ -105,6 +105,7 @@ public class CabTripSegment implements Writable {
 		s.append(end_lat.toString());
 		s.append(",");
 		s.append(end_long.toString());
+		s.append(";");
 		
 		return s.toString();
 	}

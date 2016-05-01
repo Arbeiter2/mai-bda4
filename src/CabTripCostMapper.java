@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.util.ArrayList;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -26,6 +28,52 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	}
 	
 	/**
+	 * turn a semicolon separated list of segment data (without status codes) into 
+	 * an array of CabTripSegments
+	 * 
+	 * @param segStr
+	 * @return
+	 */
+	private static CabTripSegment[] parse(String segStr)
+	{
+		CabTripSegment[] retVal = null;
+		ArrayList<CabTripSegment> segList = new ArrayList<CabTripSegment>();
+		double start_lat, start_long, end_lat, end_long;
+		long start_ts, end_ts;
+		
+		if (segStr == null)
+			return null;
+		
+		String[] seg = segStr.split(";");
+		retVal = new CabTripSegment[seg.length];
+		
+		// parse each of the six (6) comma-separated components
+		for (String s : seg)
+		{
+			String[] bits = s.split(",");
+			
+			if (bits.length != 6)
+				return null;
+			
+			start_ts = Long.parseLong(bits[0]);
+			start_lat = Double.parseDouble(bits[1]);
+			start_long = Double.parseDouble(bits[2]);			
+			end_ts = Long.parseLong(bits[3]);
+			end_lat = Double.parseDouble(bits[4]);
+			end_long = Double.parseDouble(bits[5]);
+			
+			// we don't need to save the status codes as these are all in sorted time order
+			segList.add(new CabTripSegment("", start_ts, start_lat, start_long,
+					"",  end_ts, end_lat, end_long));
+		}
+		retVal = segList.toArray(new CabTripSegment[0]);
+		
+		return retVal;
+	}
+	
+	
+	
+	/**
 	 * calculates total distance travelled from comma-separated string of trip segments
 	 * 
 	 * @param segments - string representation of CabTripSegments
@@ -33,23 +81,14 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	 * 		-1 if input malformed, or trip does not pass within range of airport
 	 * 
 	 */
-	protected static double getTripLength(String segments) throws IOException
+	protected static double getTripLength(CabTripSegment[] segments) throws IOException
 	{
-		String[] bits = segments.split(",");
-		
-		if (bits.length % 6 != 0)
-			throw new IOException("Malformed segment text");
-		
 		double trip_length = 0d;
 		double inter_seg_dist = 0d;
 		double seg_dist = 0d;
 
-		double start_ts;
-		double start_lat;
-		double start_long;
-		double end_ts;
-		double end_lat;
-		double end_long;
+		double start_ts, start_lat, start_long;
+		double end_ts, end_lat, end_long;
 		
 		double last_lat = -999d;
 		double last_long = -999d;
@@ -57,14 +96,16 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 		
 		boolean in_airport_range = false;
 		
-		for (int i=0; i < bits.length; i+=6)
+		// check each segment
+		for (CabTripSegment s : segments)
 		{
-			start_ts = Double.parseDouble(bits[i]);
-			start_lat = Double.parseDouble(bits[i+1]);
-			start_long = Double.parseDouble(bits[i+2]);			
-			end_ts = Double.parseDouble(bits[i+3]);
-			end_lat = Double.parseDouble(bits[i+4]);
-			end_long = Double.parseDouble(bits[i+5]);
+			start_ts = s.getStart_timestamp().get();
+			start_lat = s.getStart_lat().get();
+			start_long = s.getStart_long().get();
+			
+			end_ts = s.getEnd_timestamp().get();
+			end_lat = s.getEnd_lat().get();
+			end_long = s.getEnd_long().get();
 			
 			// reject dodgy timetamps
 			if (start_ts >= end_ts)
@@ -123,11 +164,11 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	/*
 	 * Output of CabTrips is in the following format
 	 * 
-	 * 		<taxi_id>,<sequence_number><\t><segment>[,<segment>,...]
+	 * 		<taxi_id>,<sequence_number><\t><segment>[<segment>,...]
 	 * 
 	 * where <segment> is a tuple consisting of two components:
 	 * 
-	 * 		<segment> = <start-marker>,<end-marker>
+	 * 		<segment> = <start-marker>,<end-marker>;
 	 * 
 	 * where <start-marker> and <end-marker> are both <marker> objects:
 	 * 
@@ -136,6 +177,10 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 	 * Thus complete segment consists of six (6) numerical components
 	 * 
 	 * 		<segment> = <start-epoch-time>,<start-latitude>,<start-longitude>,<end-epoch-time>,<end-latitude>,<end-longitude>
+	 * 
+	 * Output is in the following form:
+	 * 
+	 * 		<taxi-id>,<taxi-trip-number>,<start-timestamp>,<end-timestamp>,<distance>,<cost>
 	 */	
 	public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
@@ -147,18 +192,36 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 		if (key.toString().split(",").length < 2)
 			throw new IOException("Malformed trip ident");
 		
-		// calculate trip distance, and if valid, emit with trip ident
+		// create segment objects from semicolon string list; bomb if any parse errors found
+		CabTripSegment[] segments = parse(value.toString());
+		if (segments == null)
+			return;
+		
+		// calculate trip distance, and if valid, emit with trip ident and start time
+		double dist;
+		double cost;
+		StringBuilder builder = new StringBuilder();
 		try
 		{
-		double dist = CabTripCostMapper.getTripLength(value.toString());
-		double cost;
-		if (dist!= -1d)
-		{
+			dist = CabTripCostMapper.getTripLength(segments);
+			if (dist == -1d)
+				return;
+			
 			cost = taxi_start_charge + dist * taxi_charge_per_unit_dist;
-			trip_cost.set(Double.toString(cost));
+			
+			// construct record
+			builder.setLength(0);
+			builder.append(segments[0].getStart_timestamp().get());
+			builder.append(",");
+			builder.append(segments[0].getEnd_timestamp().get());
+			builder.append(",");
+			builder.append(dist);
+			builder.append(",");
+			builder.append(cost);
+			
+			trip_cost.set(builder.toString());
 			
 			context.write(key, trip_cost);
-		}
 		} catch (IOException e)
 		{
 			// do nothing

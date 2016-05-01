@@ -246,7 +246,7 @@ public class CabTripReducer
 					for (int i=0; i < segList.length-1; i++)
 					{
 						s.append(segList[i]);
-						s.append(",");
+						s.append(";");
 					}
 					
 					// get output key as (taxi_id,taxi_trip_number)
