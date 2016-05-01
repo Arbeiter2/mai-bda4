@@ -234,14 +234,21 @@ public class CabTripReducer
 		theLogger.info("R:"+key.toString() + "::" + values.toString());
 
 		CabTripSegment last = null;
-		boolean retVal;
 		for (CabTripSegment segment : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
+			
+			// discard segments starting before end of last one
+			if (last != null 
+					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
+			{
+				theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
+				continue;
+			}
+			
 			CabTripSegment seg = new CabTripSegment(segment);
 		
 			// check whether the end of the last segment was in the last hour
-
 			String start_status = seg.getStart_status().toString();
 			String end_status = seg.getEnd_status().toString();
 			
