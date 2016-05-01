@@ -6,11 +6,11 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CabTripCostMapper extends Mapper<Text, Text, LongWritable, Text> {
+public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Text> {
 	private Text trip_cost = new Text();
 	private static String trip_id;
 	private static String unit = "K";
-	private LongWritable start_timestamp_epoch = new LongWritable();
+	private CabTripCostRecord timestamp_pair = new CabTripCostRecord();
 
 
 	// K=km, N=nautical miles, M=statute mile
@@ -219,18 +219,20 @@ public class CabTripCostMapper extends Mapper<Text, Text, LongWritable, Text> {
 			// construct record
 			builder.setLength(0);
 
-			builder.append(segments[segments.length-1].getEnd_timestamp().get());
-			builder.append(",");
+			//builder.append(segments[segments.length-1].getEnd_timestamp().get());
+			//builder.append(",");
 			builder.append(dist);
 			builder.append(",");
 			builder.append(cost);
 			builder.append(",");
 			builder.append(trip_id);
 			
-			start_timestamp_epoch.set(segments[0].getStart_timestamp().get());
+			timestamp_pair.setStart_timestamp(segments[0].getStart_timestamp().get());
+			timestamp_pair.setEnd_timestamp(segments[segments.length-1].getEnd_timestamp().get());
+			
 			trip_cost.set(builder.toString());
 			
-			context.write(start_timestamp_epoch, trip_cost);
+			context.write(timestamp_pair, trip_cost);
 		} catch (IOException e)
 		{
 			// do nothing
