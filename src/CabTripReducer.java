@@ -2,7 +2,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Mapper.Context;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -26,7 +29,14 @@ public class CabTripReducer
 	protected HashMap<Text, ArrayList<CabTripSegment>> segments = new HashMap<Text, ArrayList<CabTripSegment>>();
 
 	
-
+	@Override
+	protected void setup(Context context)
+            throws IOException,
+            InterruptedException
+    {
+		theLogger.setLevel(Level.DEBUG);
+	}
+	
 	/**
 	 * @param taxi_id
 	 * @return String representation of trip ID

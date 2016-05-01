@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -21,8 +23,11 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 	private static double taxi_start_charge;
 	private static double taxi_charge_per_unit_dist;
 
+	
 	@Override
 	public void setup(Context context) {
+		theLogger.setLevel(Level.DEBUG);
+		
 		Configuration conf = context.getConfiguration();
 		
 		airport_lat = conf.getDouble("SFO_lat", 37.62131);

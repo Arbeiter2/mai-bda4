@@ -8,6 +8,7 @@ import org.apache.hadoop.io.MD5Hash;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabTripSegment> {
@@ -28,6 +29,8 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
             throws IOException,
             InterruptedException
     {
+		theLogger.setLevel(Level.DEBUG);
+
 		InputSplit is = context.getInputSplit();
 		theLogger.debug("M: splitId["+is.toString()+"]");
 	}
