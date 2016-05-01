@@ -142,7 +142,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			theLogger.info("startTrip("+taxi_id.toString()+"): Trashing nr ["+currTripNum.toString()+"]");
+			theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
 			clearSegments(taxi_id, running);
 			return false;
 		}
@@ -167,7 +167,42 @@ public class CabTripReducer
 		inTrip.put(taxi_id, false);
 		clearSegments(taxi_id, false);
 		return true;
-	}	
+	}
+	
+	/**
+	 * emits output
+	 * 
+	 * @param context
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private void emit(Context context) throws IOException, InterruptedException
+	{
+		// build string out of array of segments
+		CabTripSegment[] segList = getSegments(taxi);
+		if (segList != null)
+		{
+			StringBuilder s = new StringBuilder();
+			for (int i=0; i < segList.length-1; i++)
+			{
+				s.append(segList[i]);
+				s.append(";");
+			}
+			
+			// get output key as (taxi_id,taxi_trip_number)
+			trip_id.set(getCurrentTripID(taxi));
+			s.append(segList[segList.length-1]);
+			segmentString.set(s.toString());
+			
+			// emit 
+			context.write(trip_id, segmentString);
+		}
+		else
+		{
+			//System.out.println("Empty segList for "+taxi.toString());
+		}
+		
+	}
 	
 
 	/**
@@ -199,19 +234,47 @@ public class CabTripReducer
 		taxi = key.getVehicleID();
 		theLogger.info("R:"+key.toString() + "::" + values.toString());
 
+		CabTripSegment last = null;
 		boolean retVal;
 		for (CabTripSegment segment : values) {
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 			CabTripSegment seg = new CabTripSegment(segment);
+		
+			// check whether the end of the last segment was in the last hour
+
 			String start_status = seg.getStart_status().toString();
 			String end_status = seg.getEnd_status().toString();
 			
-			// meter started within record - new trip
+			// meter started 
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
-				startTrip(taxi);
-				addSegment(taxi, seg);
+				// newly started
+				if (last == null)
+				{
+					// then start a new one
+					startTrip(taxi);
+					addSegment(taxi, seg);
+				}
+				else
+				{
+					// if meter start within record, and more than an hour has passed, new trip
+					long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
+					if (gap >= 60L)
+					{
+						// output the trip we were last working on
+						emit(context);
+						
+						// then start a new one
+						startTrip(taxi);
+						addSegment(taxi, seg);						
+					}
+					else
+					{
+						// continue existing trip
+						addSegment(taxi, seg);
+					}
+				}
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
@@ -227,35 +290,15 @@ public class CabTripReducer
 				if (!retVal)
 				{
 					endTrip(taxi);
-					return;
-				}
-
-				// build string out of array of segments
-				CabTripSegment[] segList = getSegments(taxi);
-				if (segList != null)
-				{
-					StringBuilder s = new StringBuilder();
-					for (int i=0; i < segList.length-1; i++)
-					{
-						s.append(segList[i]);
-						s.append(";");
-					}
-					
-					// get output key as (taxi_id,taxi_trip_number)
-					trip_id.set(getCurrentTripID(taxi));
-					s.append(segList[segList.length-1]);
-					segmentString.set(s.toString());
-					
-					// emit 
-					context.write(trip_id, segmentString);
 				}
 				else
 				{
-					//System.out.println("Empty segList for "+taxi.toString());
+					// output record
+					emit(context);
+					endTrip(taxi);
 				}
-				
-				endTrip(taxi);
 			}
+			last = seg;
 		}
 	}	
 }
