@@ -275,6 +275,16 @@ public class CabTripReducer
 						addSegment(taxi, seg);
 					}
 				}
+				// if meter start within record, and more than an hour has passed, new trip
+				if (last != null && 
+					last.getEnd_timestamp().get() - seg.getStart_timestamp().get() > 60L)
+				{
+					// output the trip we were last working on
+					emit(context);
+				}	
+				// then start a new one
+				startTrip(taxi);
+				addSegment(taxi, seg);
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
