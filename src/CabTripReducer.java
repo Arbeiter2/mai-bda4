@@ -248,6 +248,7 @@ public class CabTripReducer
 						s.append(segList[i]);
 						s.append(";");
 					}
+					System.out.println(s.toString());
 					
 					// get output key as (taxi_id,taxi_trip_number)
 					trip_id.set(getCurrentTripID(taxi));

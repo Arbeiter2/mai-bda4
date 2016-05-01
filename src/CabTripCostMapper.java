@@ -123,7 +123,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 			inter_seg_dist = 0d;
 			if (last_ts != -999 && !(last_lat == start_lat && last_long == start_long))
 			{
-				inter_seg_dist = GeoDistanceCalc.distance(last_lat, last_lat, start_lat, start_long, unit);
+				inter_seg_dist = GeoDistanceCalc.distance(last_lat, last_long, start_lat, start_long, unit);
 				double tdiff = start_ts - last_ts;
 				if (tdiff < 0)
 					throw new IOException("Segment timestamps out of sequence");
@@ -217,7 +217,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, Text, Text> {
 			builder.setLength(0);
 			builder.append(segments[0].getStart_timestamp().get());
 			builder.append(",");
-			builder.append(segments[0].getEnd_timestamp().get());
+			builder.append(segments[segments.length-1].getEnd_timestamp().get());
 			builder.append(",");
 			builder.append(dist);
 			builder.append(",");
