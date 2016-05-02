@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 public class CabTripReducer
 	extends Reducer<VehicleIDTimestamp, CabTripSegment, Text, Text> {
 
-	private static Logger theLogger = Logger.getLogger(CabTrips.class);
+	private static Logger theLogger = Logger.getLogger(CabTripReducer.class);
 
 	private Text taxi;
 	private Text trip_id = new Text();
