@@ -24,7 +24,7 @@ public class CabTripReducer
 	
 	// output date stamps with timezone in format [offset][hh:mm] 
 	// e.g. 2010-12-23 09:12:09 -05:00 == EST
-	protected static DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS Z");
+	protected static DateFormat formatter = null;
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
@@ -192,7 +192,7 @@ public class CabTripReducer
 			// create date parser if needed
 			if (formatter == null)
 			{
-				formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS Z");
+				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 				
 				// get timezone from lat/long
 				String tz = TimezoneMapper.latLngToTimezoneString(segList[0].getStart_lat().get(), 

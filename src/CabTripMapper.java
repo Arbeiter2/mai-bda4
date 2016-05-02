@@ -73,7 +73,7 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 		// create date parser if needed
 		if (formatter == null)
 		{
-			formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS");
+			formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
 			
 			// get timezone from lat/long
 			String tz = TimezoneMapper.latLngToTimezoneString(start_lat, start_long);
