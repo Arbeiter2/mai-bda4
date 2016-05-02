@@ -91,7 +91,7 @@ public class CabTripCost extends Configured implements Tool {
 
 			// output path
 			if (cmd.hasOption("o")) {
-				outputPath = cmd.getOptionValue("i");
+				outputPath = cmd.getOptionValue("o");
 			} else {
 				theLogger.log(Level.INFO, "Missing -o option");
 				help(options);
@@ -106,7 +106,7 @@ public class CabTripCost extends Configured implements Tool {
 			
 			// numReducers
 			if (cmd.hasOption("r")) {
-				numReducers = Integer.parseInt(cmd.getOptionValue("i"));
+				numReducers = Integer.parseInt(cmd.getOptionValue("r"));
 				if (numReducers <= 0)
 				{
 					theLogger.log(Level.INFO, "Invalid -r option");
