@@ -36,6 +36,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		useReference = conf.getBoolean("useReference", false);
 		if (useReference)
 		{
+			theLogger.info("Using reference point ["+reference_name+"]");
 			reference_name = conf.get("reference_name");
 			reference_lat = conf.getDouble("reference_lat", 37.62131);
 			reference_long = conf.getDouble("reference_long", -122.37896);

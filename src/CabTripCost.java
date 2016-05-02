@@ -32,7 +32,7 @@ public class CabTripCost extends Configured implements Tool {
 	private static Logger theLogger = Logger.getLogger(CabTripCost.class);
 	private String inputPath = null;
 	private String outputPath = null;
-	private int numReducers = 0;
+	private int numReducers = 1;
 	private double initialCharge = 0.00;
 	private double chargePerKm = 0.00;
 	
