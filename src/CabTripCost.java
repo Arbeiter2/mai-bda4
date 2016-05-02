@@ -97,6 +97,13 @@ public class CabTripCost extends Configured implements Tool {
 				help(options);
 			}
 			
+			// verify paths
+			if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
+			{
+				theLogger.log(Level.INFO, "Invalid input/output path");
+				help(options);				
+			}
+			
 			// numReducers
 			if (cmd.hasOption("r")) {
 				numReducers = Integer.parseInt(cmd.getOptionValue("i"));
