@@ -17,6 +17,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 
 
 	// K=km, N=nautical miles, M=statute mile
+	private static boolean useReference = false;
 	private static double reference_lat;
 	private static double reference_long;
 	private static double reference_range;
@@ -30,11 +31,17 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		
 		Configuration conf = context.getConfiguration();
 		
-		reference_lat = conf.getDouble("reference_lat", 37.62131);
-		reference_long = conf.getDouble("reference_long", -122.37896);
-		reference_range = conf.getDouble("reference_range", 1d);
-		taxi_start_charge = conf.getDouble("taxi_start_charge", 3.5);
-		taxi_charge_per_unit_dist = conf.getDouble("taxi_charge_per_unit_dist", 1.71);
+		// if a reference point is supplied, only return costs within range
+		if (conf.get("reference_name") != null)
+		{
+			useReference = true;
+			
+			reference_lat = conf.getDouble("reference_lat", 37.62131);
+			reference_long = conf.getDouble("reference_long", -122.37896);
+			reference_range = conf.getDouble("reference_range", 1d);
+			taxi_start_charge = conf.getDouble("taxi_start_charge", 3.5);
+			taxi_charge_per_unit_dist = conf.getDouble("taxi_charge_per_unit_dist", 1.71);
+		}
 	}
 	
 	/**
@@ -140,7 +147,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 					throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
 				
 				// check whether this inter-segment journey passes within range of the reference
-				if (GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
+				if (useReference && GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
 						reference_lat, reference_long, unit) <= reference_range)
 					in_reference_range = true;
 			}
@@ -153,7 +160,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			trip_length += seg_dist;
 			
 			// check whether this segment journey passes within range of the reference
-			if (GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
+			if (useReference && GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
 					reference_lat, reference_long, unit) <= reference_range)
 				in_reference_range = true;			
 
@@ -164,10 +171,15 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
 		
 		// if the trip was not within tange of reference, return -1
-		if (in_reference_range)
-			return trip_length;
+		if (useReference)
+		{
+			if (in_reference_range)
+				return trip_length;
+			else
+				return -1d;
+		}
 		else
-			return -1d;
+			return trip_length;
 	}
 	
 
