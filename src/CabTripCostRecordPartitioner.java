@@ -8,8 +8,7 @@ public class CabTripCostRecordPartitioner
                             Text data, 
                             int numberOfPartitions) {
     	// make sure that partitions are non-negative
-        return Math.abs((pair.getStart_timestamp().hashCode() + 
-        		pair.getEnd_timestamp().hashCode()) % numberOfPartitions);
+		return (int)(pair.getStart_timestamp().get()) % numberOfPartitions;
     }
 
 }

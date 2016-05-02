@@ -19,9 +19,9 @@ public class CabTripCostRecordComparator
 		 CabTripCostRecord pair = (CabTripCostRecord) wc1;
 		 CabTripCostRecord pair2 = (CabTripCostRecord) wc2;
 		 
-		 int cmp = pair.getStart_timestamp().compareTo(pair2.getStart_timestamp());
+		 int cmp = (int)(pair.getStart_timestamp().get() - pair2.getStart_timestamp().get());
 		 if (cmp == 0)
-			 cmp = pair.getEnd_timestamp().compareTo(pair2.getEnd_timestamp());
+			 cmp = (int)(pair.getEnd_timestamp().get() - pair2.getEnd_timestamp().get());
 		 
 		 return cmp;
 	 }

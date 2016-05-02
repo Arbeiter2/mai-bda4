@@ -66,11 +66,10 @@ public class CabTripCostRecord
 
     //@Override
     public int compareTo(CabTripCostRecord pair) {
-        int compareValue = this.start_timestamp.compareTo(pair.start_timestamp);
-        if (compareValue == 0) {
-            compareValue = end_timestamp.compareTo(pair.end_timestamp);
-        }
-        return compareValue; 		// to sort ascending 
+		int cmp = (int)(this.getStart_timestamp().get() - pair.getStart_timestamp().get());
+		if (cmp == 0)
+			cmp = (int)(this.getEnd_timestamp().get() - pair.getEnd_timestamp().get());
+        return cmp; 		// to sort ascending 
     }
     
     @Override
