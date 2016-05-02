@@ -211,10 +211,10 @@ public class CabTripReducer
 				s.append(segList[i].toString(formatter));
 				s.append(";");
 			}
+			s.append(segList[segList.length-1]);
 			
 			// get output key as (taxi_id,taxi_trip_number)
 			trip_id.set(getCurrentTripID(taxi));
-			s.append(segList[segList.length-1]);
 			segmentString.set(s.toString());
 
 			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");

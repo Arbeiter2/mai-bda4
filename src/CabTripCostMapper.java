@@ -101,8 +101,10 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 				return null;
 			
 			// do coordinates first
+			start_ts = Long.parseLong(bits[0]);
 			start_lat = Double.parseDouble(bits[1]);
 			start_long = Double.parseDouble(bits[2]);			
+			end_ts = Long.parseLong(bits[3]);			
 			end_lat = Double.parseDouble(bits[4]);
 			end_long = Double.parseDouble(bits[5]);
 			
@@ -111,9 +113,11 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			{
 				tzStr = new Text();
 				tzStr.set(TimezoneMapper.latLngToTimezoneString(start_lat, start_long));
+				theLogger.info("CabTripCostMapper: using timezone ["+tzStr.toString()+"]");
 			}
 
 			// parse date strings
+			/*
 			try {
 				// parse dates and reject if they are invalid
 				start_ts = formatter.parse(bits[0]).getTime()/1000;
@@ -121,7 +125,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			} catch (ParseException e) {
 				theLogger.error( e.getMessage(), e );
 				return null;
-			}
+			}*/
 			
 			
 			// we don't need to save the status codes as these are all in sorted time order
