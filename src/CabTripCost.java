@@ -53,9 +53,9 @@ public class CabTripCost extends Configured implements Tool {
 		options.addOption("h", "help", false, "show help.");
 		options.addOption("i", "input", true, "input path");
 		options.addOption("o", "output", true, "output path");
-		options.addOption("r", "reducers", false, "number of reducers");
+		options.addOption("r", "reducers", true, "number of reducers");
 		options.addOption("C", "charge", true, "taxi charge (format: <initial charge>,<cost-per-km>)");
-		options.addOption("L", "location", false, "reference location, and range from ref (format: <string-ref>,<lat>,<long>,<range-km>)");
+		options.addOption("L", "location", true, "reference location, and range from ref (format: <string-ref>,<lat>,<long>,<range-km>)");
 
 		return options;
 	}
