@@ -1,6 +1,9 @@
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TimeZone;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.log4j.Level;
@@ -18,6 +21,10 @@ public class CabTripReducer
 	private Text taxi;
 	private Text trip_id = new Text();
 	private Text segmentString = new Text();
+	
+	// output date stamps with timezone in format [offset][hh:mm] 
+	// e.g. 2010-12-23 09:12:09 -05:00 == EST
+	protected static DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS Z");
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
@@ -182,10 +189,26 @@ public class CabTripReducer
 		CabTripSegment[] segList = getSegments(taxi);
 		if (segList != null)
 		{
+			// create date parser if needed
+			if (formatter == null)
+			{
+				formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS Z");
+				
+				// get timezone from lat/long
+				String tz = TimezoneMapper.latLngToTimezoneString(segList[0].getStart_lat().get(), 
+						segList[0].getStart_long().get());
+				
+				theLogger.info("CabTripReducer: Using timezone ["+tz+"]");
+
+				// create timezone and assign to formatter
+				TimeZone timeZone = TimeZone.getTimeZone(tz);
+				formatter.setTimeZone(timeZone);
+			}
+
 			StringBuilder s = new StringBuilder();
 			for (int i=0; i < segList.length-1; i++)
 			{
-				s.append(segList[i]);
+				s.append(segList[i].toString(formatter));
 				s.append(";");
 			}
 			

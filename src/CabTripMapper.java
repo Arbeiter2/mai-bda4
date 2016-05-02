@@ -3,6 +3,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -76,6 +77,10 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 			
 			// get timezone from lat/long
 			String tz = TimezoneMapper.latLngToTimezoneString(start_lat, start_long);
+			
+			// save timezone string
+			Configuration conf = context.getConfiguration();
+			conf.set("tz", tz);
 			
 			theLogger.info("CabTripMapper: Using timezone ["+tz+"] from coordinates ("+Double.toString(start_lat)+","+Double.toString(start_long)+")");
 

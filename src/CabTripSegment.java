@@ -6,6 +6,8 @@ import org.apache.hadoop.io.DoubleWritable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 /**
  * @author Delano
@@ -109,13 +111,48 @@ public class CabTripSegment implements Writable {
 		return s.toString();
 	}
 	
-	public static boolean follows(CabTripSegment a, CabTripSegment b)
+	/**
+	 * @param epoch - seconds since 1970-01-01 00:00:00
+	 * @param fmt - required format
+	 * @return
+	 */
+	private String getFormattedDate(long epoch, DateFormat fmt)
 	{
-		if (a == null || b == null)
-			return false;
-
-		return (a.end_lat.equals(b.start_lat) && a.end_long.equals(b.start_long));
+		Date date = new Date(epoch * 1000L);
+		return fmt.format(date);
 	}
+
+	/**
+	 * returns a record with formatted date string, instead of epoch time
+	 * 
+	 * @param fmt
+	 * @return
+	 */
+	public String toString(DateFormat fmt)
+	{
+		if (fmt == null)
+			return this.toString();
+
+		StringBuilder s = new StringBuilder();
+		//s.append(start_status);
+		//s.append(",");
+		//s.append(end_status);
+		//s.append(",");
+		s.append(getFormattedDate(start_timestamp.get(), fmt));
+		s.append(",");
+		s.append(start_lat.toString());
+		s.append(",");
+		s.append(start_long.toString());
+		s.append(",");
+		s.append(getFormattedDate(end_timestamp.get(), fmt));
+		s.append(",");
+		s.append(end_lat.toString());
+		s.append(",");
+		s.append(end_long.toString());
+		
+		return s.toString();
+	}
+	
 
 	public Text getStart_status() {
 		return start_status;
