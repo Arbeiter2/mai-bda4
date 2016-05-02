@@ -18,6 +18,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 
 	// K=km, N=nautical miles, M=statute mile
 	private static boolean useReference = false;
+	private static String reference_name;
 	private static double reference_lat;
 	private static double reference_long;
 	private static double reference_range;
@@ -32,7 +33,8 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		Configuration conf = context.getConfiguration();
 		
 		// if a reference point is supplied, only return costs within range
-		if (conf.get("reference_name") != null)
+		reference_name = conf.get("reference_name");
+		if (reference_name != null)
 		{
 			useReference = true;
 			reference_lat = conf.getDouble("reference_lat", 37.62131);
@@ -41,10 +43,28 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		}
 		else
 		{
-			System.out.print("No reference values passed");
+			System.out.println("No reference values passed");
 		}
 		taxi_start_charge = conf.getDouble("taxi_start_charge", 3.5);
 		taxi_charge_per_unit_dist = conf.getDouble("taxi_charge_per_unit_dist", 1.71);
+		
+		StringBuilder s = new StringBuilder();
+		s.append("useReference: ");
+		s.append(useReference);
+		s.append(", reference_name: ");
+		s.append(reference_name);
+		s.append(", reference_lat: ");
+		s.append(reference_lat);
+		s.append(", reference_long: ");
+		s.append(reference_long);
+		s.append(", reference_range: ");
+		s.append(reference_range);
+		s.append(", taxi_start_charge: ");
+		s.append(taxi_start_charge);
+		s.append(", taxi_charge_per_unit_dist: ");
+		s.append(taxi_charge_per_unit_dist);
+		
+		System.out.println("mapper config: "+s.toString());
 	}
 	
 	/**
