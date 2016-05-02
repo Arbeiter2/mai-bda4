@@ -74,7 +74,7 @@ public class CabTripReducer
 	 */
 	protected boolean addSegment(Text taxi_id, CabTripSegment seg)
 	{
-		//theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
+		theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		Boolean running = inTrip.get(taxi_id);
 		if (running == null || !running)
 			return false;
@@ -100,8 +100,8 @@ public class CabTripReducer
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList != null)
 		{
-			//if (running)
-			//	theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
+			if (running)
+				theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
 
 			segList.clear();
 		}
@@ -148,7 +148,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			//theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
+			theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
 			clearSegments(taxi_id, running);
 			return false;
 		}
@@ -217,7 +217,7 @@ public class CabTripReducer
 			trip_id.set(getCurrentTripID(taxi));
 			segmentString.set(s.toString());
 
-			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
+			theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
 			
 			// emit 
 			context.write(trip_id, segmentString);
@@ -269,7 +269,7 @@ public class CabTripReducer
 			if (!newTrip && last != null 
 					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
 			{
-				//theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
+				theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
 				continue;
 			}
 			
@@ -292,9 +292,9 @@ public class CabTripReducer
 				}
 				else
 				{
-					// if meter start within record, and more than an hour has passed, new trip
+					// if meter starts within record, and more than 10 mins passed, new trip
 					long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
-					if (gap >= 60L)
+					if (gap >= 600L)
 					{
 						// output the trip we were last working on
 						emit(context);
