@@ -178,15 +178,12 @@ public class CabTripCost extends Configured implements Tool {
         // process cmdline
         processArgs(args);
 
-
-		Job job = Job.getInstance(conf, "Cab trip cost calc");
-
-	    FileInputFormat.addInputPath(job, new Path(inputPath));
-		FileOutputFormat.setOutputPath(job, new Path(outputPath));
-
 		// used for calculating taxi cost
 		if (referenceName != null)
 		{
+			System.out.println("Using reference location ["+referenceName+"]");
+			
+			conf.setBoolean("useReference", true);
 			conf.set("reference_name", referenceName);
 			conf.setDouble("reference_lat", referenceLat);
 			conf.setDouble("reference_long", referenceLong);
@@ -194,6 +191,12 @@ public class CabTripCost extends Configured implements Tool {
 			conf.setDouble("taxi_start_charge", initialCharge);
 			conf.setDouble("taxi_charge_per_unit_dist", chargePerKm);
 		}
+		
+		// create Job *after* configuration is complete
+		Job job = Job.getInstance(conf, "Cab trip cost calc");
+	    FileInputFormat.addInputPath(job, new Path(inputPath));
+		FileOutputFormat.setOutputPath(job, new Path(outputPath));
+		
 		// use user-supplied number of reduce tasks
 		if (numReducers > 1)
 		{

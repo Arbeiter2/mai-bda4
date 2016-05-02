@@ -33,10 +33,8 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 		// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 		String[] tokens = value.toString().replace("'", "").trim().split(",");
-		//System.out.println(value.toString() + "\n" + key.toString());
 		
-		// discard records with no meter running
-		//System.out.println(Integer.toString(tokens.length).toString() + "\t" + value.toString());
+		// discard records with too few fields
 		if (tokens.length < 9)
 			return;
 
@@ -46,8 +44,6 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 			  (tokens[4].equals("M") && tokens[8].equals("E"))))
 			return;
 		
-		//System.out.println("[" + tokens[4] + "]\t[" + tokens[8] + "]");
-
 
 		taxi_id.set(tokens[0]);
 		
@@ -80,6 +76,8 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 			
 			// get timezone from lat/long
 			String tz = TimezoneMapper.latLngToTimezoneString(start_lat, start_long);
+			
+			theLogger.info("CabTripMapper: Using timezone ["+tz+"] from coordinates ("+Double.toString(start_lat)+","+Double.toString(start_long)+")");
 
 			// create timezone and assign to formatter
 			TimeZone timeZone = TimeZone.getTimeZone(tz);

@@ -33,21 +33,21 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		Configuration conf = context.getConfiguration();
 		
 		// if a reference point is supplied, only return costs within range
-		reference_name = conf.get("reference_name");
-		if (reference_name != null)
+		useReference = conf.getBoolean("useReference", false);
+		if (useReference)
 		{
-			useReference = true;
+			reference_name = conf.get("reference_name");
 			reference_lat = conf.getDouble("reference_lat", 37.62131);
 			reference_long = conf.getDouble("reference_long", -122.37896);
 			reference_range = conf.getDouble("reference_range", 1d);
 		}
 		else
 		{
-			System.out.println("No reference values passed");
+			//System.out.println("No reference values passed");
 		}
 		taxi_start_charge = conf.getDouble("taxi_start_charge", 3.5);
 		taxi_charge_per_unit_dist = conf.getDouble("taxi_charge_per_unit_dist", 1.71);
-		
+		/*
 		StringBuilder s = new StringBuilder();
 		s.append("useReference: ");
 		s.append(useReference);
@@ -65,6 +65,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		s.append(taxi_charge_per_unit_dist);
 		
 		System.out.println("mapper config: "+s.toString());
+		*/
 	}
 	
 	/**
