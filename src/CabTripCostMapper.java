@@ -239,7 +239,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		} catch (IOException e)
 		{
 			// do nothing
-			theLogger.error( e.getMessage(), e );
+			//theLogger.error( e.getMessage(), e );
 		}
 	}
 }
