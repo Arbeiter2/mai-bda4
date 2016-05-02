@@ -288,7 +288,7 @@ public class CabTripReducer
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
 				// reject records with long gap between start and end timestamps
-				long seg_gap = seg.getEnd_timestamp().get() - seg.getEnd_timestamp().get();
+				long seg_gap = seg.getEnd_timestamp().get() - seg.getStart_timestamp().get();
 				if (seg_gap < 0L || seg_gap > 180L)
 					continue;
 
@@ -326,7 +326,9 @@ public class CabTripReducer
 				newTrip = false;
 			}
 			// meter stopped during record - end of trip
-			else if (start_status.equals("M") && end_status.equals("E"))
+			else if ( (start_status.equals("M") && end_status.equals("E")) 
+					// OR in the middle of a trip and suddenly meter is off
+					||(!newTrip && start_status.equals("E") && end_status.equals("E")))
 			{
 				addSegment(taxi, seg);
 				
