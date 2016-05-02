@@ -31,6 +31,7 @@ public class CabTripCost extends Configured implements Tool {
 		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t");
         conf.set("mapreduce.output.key.field.separator", ",");
         conf.set("mapreduce.textoutputformat.separator", ","); 
+        conf.set("mapred.textoutputformat.separator", ",");
 
 
 		Job job = Job.getInstance(conf, "Cab trip cost calc");
