@@ -31,6 +31,8 @@ bin/CabTrips.class: src/CabTrips.java
 
 bin/CabTripCostRecord.class: src/CabTripCostRecord.java
 	$(JAVAC) src/CabTripCostRecord.java
+bin/TimezoneMapper.class: src/TimezoneMapper.java
+	$(JAVAC) src/TimezoneMapper.java
 bin/CabTripCostMapper.class: src/CabTripCostMapper.java
 	$(JAVAC) src/CabTripCostMapper.java
 bin/CabTripCostReducer.class: src/CabTripCostReducer.java
@@ -43,7 +45,7 @@ bin/CabTripCost.class: src/CabTripCost.java
 	$(JAVAC) src/CabTripCost.java
 
 bin/Exercise2.jar:	bin/CabTripSegment.class bin/VehicleIDTimestamp.class bin/VehicleIDTimestampComparator.class \
-	bin/VehicleIDTimestampPartitioner.class bin/GeoDistanceCalc.class \
+	bin/VehicleIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class \
 	bin/CabTripMapper.class bin/CabTripReducer.class bin/CabTrips.class bin/CabTripCostRecord.class  \
 	bin/CabTripCostMapper.class bin/CabTripCostReducer.class bin/CabTripCostRecordComparator.class \
 	bin/CabTripCostRecordPartitioner.class  bin/CabTripCost.class
@@ -51,4 +53,4 @@ bin/Exercise2.jar:	bin/CabTripSegment.class bin/VehicleIDTimestamp.class bin/Veh
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class CabTripCost.class CabTripCostMapper.class \
 		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class \
 		CabTripSegment.class CabTripCostReducer.class CabTripCostRecord.class CabTripCostRecordComparator.class \
-		CabTripCostRecordPartitioner.class
+		CabTripCostRecordPartitioner.class TimezoneMapper.class
