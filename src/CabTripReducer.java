@@ -192,7 +192,7 @@ public class CabTripReducer
 			// create date parser if needed
 			if (formatter == null)
 			{
-				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 				
 				// get timezone from lat/long
 				String tz = TimezoneMapper.latLngToTimezoneString(segList[0].getStart_lat().get(), 

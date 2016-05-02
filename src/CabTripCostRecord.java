@@ -1,8 +1,12 @@
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 
@@ -18,6 +22,8 @@ public class CabTripCostRecord
 
     private LongWritable start_timestamp = new LongWritable();
 	private LongWritable end_timestamp= new LongWritable();
+	private Text timezoneStr = new Text();
+	private static TimeZone timeZone = null;
 
 	public LongWritable getStart_timestamp() {
 		return start_timestamp;
@@ -35,13 +41,23 @@ public class CabTripCostRecord
 		this.end_timestamp.set(end_timestamp);
 	}
 
+
+	public Text getTimezoneStr() {
+		return timezoneStr;
+	}
+
+	public void setTimezoneStr(Text timezoneStr) {
+		this.timezoneStr = timezoneStr;
+	}    
+	
 	
 	public CabTripCostRecord() {
 	    }
 
-    public CabTripCostRecord(long start_ts, long end_ts) {
+    public CabTripCostRecord(long start_ts, long end_ts, String tzStr) {
         this.start_timestamp.set(start_ts);
         this.end_timestamp.set(end_ts);
+        this.timezoneStr.set(tzStr);
     }
 
     public static CabTripCostRecord read(DataInput in) throws IOException {
@@ -54,14 +70,14 @@ public class CabTripCostRecord
     public void write(DataOutput out) throws IOException {
     	start_timestamp.write(out);
     	end_timestamp.write(out);
-        //tripData.write(out);
+        timezoneStr.write(out);
     }
 
     //@Override
     public void readFields(DataInput in) throws IOException {
     	start_timestamp.readFields(in);
         end_timestamp.readFields(in);
-        //tripData.readFields(in);
+        timezoneStr.readFields(in);
     }
 
     //@Override
@@ -107,5 +123,33 @@ public class CabTripCostRecord
     	builder.append(end_timestamp);
 
     	return builder.toString();
-    }    
+    }
+ 
+	/**
+	 * @param epoch - seconds since 1970-01-01 00:00:00
+	 * @param fmt - required format
+	 * @return
+	 */
+	private String getFormattedDate(long epoch, DateFormat fmt)
+	{
+		Date date = new Date(epoch * 1000L);
+		timeZone = TimeZone.getTimeZone(timezoneStr.toString());
+		fmt.setTimeZone(timeZone);
+		return fmt.format(date);
+	}
+	
+	public String toString(DateFormat fmt)
+	{
+		if (fmt == null)
+			return this.toString();
+
+		StringBuilder s = new StringBuilder();
+
+		s.append(getFormattedDate(start_timestamp.get(), fmt));
+		s.append(",");
+		s.append(getFormattedDate(end_timestamp.get(), fmt));
+		
+		
+		return s.toString();
+	}
 }

@@ -1,6 +1,7 @@
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.hadoop.conf.Configuration;
@@ -14,6 +15,8 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 	private static String trip_id;
 	private static String unit = "K";
 	private CabTripCostRecord timestamp_pair = new CabTripCostRecord();
+	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	private static Text tzStr = null;	// time zone string
 
 
 	// K=km, N=nautical miles, M=statute mile
@@ -97,12 +100,29 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			if (bits.length != 6)
 				return null;
 			
-			start_ts = Long.parseLong(bits[0]);
+			// do coordinates first
 			start_lat = Double.parseDouble(bits[1]);
 			start_long = Double.parseDouble(bits[2]);			
-			end_ts = Long.parseLong(bits[3]);
 			end_lat = Double.parseDouble(bits[4]);
 			end_long = Double.parseDouble(bits[5]);
+			
+			// get timezone string
+			if (tzStr == null)
+			{
+				tzStr = new Text();
+				tzStr.set(TimezoneMapper.latLngToTimezoneString(start_lat, start_long));
+			}
+
+			// parse date strings
+			try {
+				// parse dates and reject if they are invalid
+				start_ts = formatter.parse(bits[0]).getTime()/1000;
+				end_ts = formatter.parse(bits[3]).getTime()/1000;
+			} catch (ParseException e) {
+				theLogger.error( e.getMessage(), e );
+				return null;
+			}
+			
 			
 			// we don't need to save the status codes as these are all in sorted time order
 			segList.add(new CabTripSegment("", start_ts, start_lat, start_long,
@@ -243,6 +263,9 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		CabTripSegment[] segments = parse(value.toString());
 		if (segments == null)
 			return;
+		
+		// save time zone string
+		timestamp_pair.setTimezoneStr(tzStr);
 		
 		// calculate trip distance, and if valid, emit with trip ident and start time
 		double dist;
