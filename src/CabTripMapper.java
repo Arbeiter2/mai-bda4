@@ -15,12 +15,8 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 	private static Logger theLogger = Logger.getLogger(CabTripMapper.class);
 	private Text taxi_id = new Text();
 	private VehicleIDTimestamp vehicleTs = new VehicleIDTimestamp();
-	protected static TimeZone timeZone = TimeZone.getTimeZone("US/Pacific");
-	protected static DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS");
+	protected static DateFormat formatter = null; 
 	
-	static {
-		formatter.setTimeZone(timeZone);
-	}
 
 	@Override
 	protected void setup(Context context)
@@ -56,21 +52,7 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 		taxi_id.set(tokens[0]);
 		
 		
-		// parse string timestamps into epoch time, and latitude/longitude strings into longs
-		long start_epoch = -1l;
-		long end_epoch = -1l;
-		try {
-			// parse dates and reject if they are invalid
-			start_epoch = formatter.parse(tokens[1]).getTime()/1000;
-			end_epoch = formatter.parse(tokens[5]).getTime()/1000;
-			if (!(end_epoch > start_epoch))
-				return;
-		} catch (ParseException e) {
-			theLogger.error( e.getMessage(), e );
-			return;
-		}
-		
-		// parse latitude/longitude values
+		// parse latitude/longitude values first; gives the opportunity to set timezone
 		double start_lat = 0d;		// latitude at segment start
 		double start_long = 0d;		// longitude at segment end
 		double end_lat = 0d;		// latitude at segment end
@@ -90,6 +72,34 @@ public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabT
 			System.out.println("Bad coordinates(s): "+ value.toString());
 			return;
 		}
+		
+		// create date parser if needed
+		if (formatter == null)
+		{
+			formatter = new SimpleDateFormat("yyyy-MM-DD HH:mm:SS");
+			
+			// get timezone from lat/long
+			String tz = TimezoneMapper.latLngToTimezoneString(start_lat, start_long);
+
+			// create timezone and assign to formatter
+			TimeZone timeZone = TimeZone.getTimeZone(tz);
+			formatter.setTimeZone(timeZone);
+		}
+		
+		// parse string timestamps into epoch time, and latitude/longitude strings into longs
+		long start_epoch = -1l;
+		long end_epoch = -1l;
+		try {
+			// parse dates and reject if they are invalid
+			start_epoch = formatter.parse(tokens[1]).getTime()/1000;
+			end_epoch = formatter.parse(tokens[5]).getTime()/1000;
+			if (!(end_epoch > start_epoch))
+				return;
+		} catch (ParseException e) {
+			theLogger.error( e.getMessage(), e );
+			return;
+		}
+
 
 		CabTripSegment seg = new CabTripSegment(tokens[4], start_epoch, start_lat, start_long, 
 				tokens[8], end_epoch, end_lat, end_long);
