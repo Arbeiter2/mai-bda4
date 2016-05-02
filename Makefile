@@ -5,7 +5,7 @@ JAVAC = javac -cp $(CLASSPATH) -d bin
 all: bin/Exercise1.jar bin/Exercise2.jar
 
 clean:
-	cd bin && rm *class Exercise1.jar Exercise2.jar
+	cd bin && rm -f *class Exercise1.jar Exercise2.jar
 
 bin/GeoDistanceCalc.class: src/GeoDistanceCalc.java
 	$(JAVAC) src/GeoDistanceCalc.java
@@ -46,11 +46,11 @@ bin/CabTripCost.class: src/CabTripCost.java
 
 bin/Exercise2.jar:	bin/CabTripSegment.class bin/VehicleIDTimestamp.class bin/VehicleIDTimestampComparator.class \
 	bin/VehicleIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class \
-	bin/CabTripMapper.class bin/CabTripReducer.class bin/CabTrips.class bin/CabTripCostRecord.class  \
+	bin/CabTripMapper.class  bin/CabTripReducer.class bin/CabTrips.class bin/CabTripCostRecord.class  \
 	bin/CabTripCostMapper.class bin/CabTripCostReducer.class bin/CabTripCostRecordComparator.class \
 	bin/CabTripCostRecordPartitioner.class  bin/CabTripCost.class
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class CabTripCost.class CabTripCostMapper.class \
 		VehicleIDTimestamp.class VehicleIDTimestampComparator.class VehicleIDTimestampPartitioner.class \
 		CabTripSegment.class CabTripCostReducer.class CabTripCostRecord.class CabTripCostRecordComparator.class \
-		CabTripCostRecordPartitioner.class TimezoneMapper.class
+		CabTripCostRecordPartitioner.class TimezoneMapper.class TimezoneMapper*.class
