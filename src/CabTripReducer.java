@@ -67,7 +67,7 @@ public class CabTripReducer
 	 */
 	protected boolean addSegment(Text taxi_id, CabTripSegment seg)
 	{
-		theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
+		//theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		Boolean running = inTrip.get(taxi_id);
 		if (running == null || !running)
 			return false;
@@ -93,8 +93,8 @@ public class CabTripReducer
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList != null)
 		{
-			if (running)
-				theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
+			//if (running)
+			//	theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
 
 			segList.clear();
 		}
@@ -141,7 +141,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
+			//theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
 			clearSegments(taxi_id, running);
 			return false;
 		}
@@ -194,7 +194,7 @@ public class CabTripReducer
 			s.append(segList[segList.length-1]);
 			segmentString.set(s.toString());
 
-			theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
+			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
 			
 			// emit 
 			context.write(trip_id, segmentString);
@@ -234,7 +234,7 @@ public class CabTripReducer
 			throws IOException, InterruptedException {
 
 		taxi = key.getVehicleID();
-		theLogger.info("R:"+key.toString() + "::" + values.toString());
+		//theLogger.info("R:"+key.toString() + "::" + values.toString());
 
 		CabTripSegment last = null;
 		boolean newTrip = true;
@@ -246,7 +246,7 @@ public class CabTripReducer
 			if (!newTrip && last != null 
 					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
 			{
-				theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
+				//theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
 				continue;
 			}
 			
