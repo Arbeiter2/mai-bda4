@@ -1,5 +1,11 @@
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -9,7 +15,9 @@ import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
 
 /**
  * 
@@ -22,7 +30,134 @@ import org.apache.log4j.Logger;
 public class CabTripCost extends Configured implements Tool {
 	
 	private static Logger theLogger = Logger.getLogger(CabTripCost.class);
+	private String inputPath = null;
+	private String outputPath = null;
+	private int numReducers = 0;
+	private double initialCharge = 0.00;
+	private double chargePerKm = 0.00;
+	
+	// by default cost calculator finds cost of all trips; 
+	// if reference point is provided, only trips passing within provided range around
+	// provided lat/long reference point will be returned
+	private String referenceName = null;
+	private double referenceLat = -9999d;
+	private double referenceLong = -9999d;
+	private double referenceRangeKm = -1d;	
+	
+	
+	
+	private static Options buildOptions()
+	{
+		Options options = new Options();
+		
+		options.addOption("h", "help", false, "show help.");
+		options.addOption("i", "input", true, "input path");
+		options.addOption("o", "output", true, "output path");
+		options.addOption("r", "reducers", false, "number of reducers");
+		options.addOption("C", "charge", true, "taxi charge (format: <initial charge>,<cost-per-km>)");
+		options.addOption("L", "location", false, "reference location, and range from ref (format: <string-ref>,<lat>,<long>,<range-km>)");
 
+		return options;
+	}
+		
+	private static void help(Options options) 
+	{
+		// This prints out some help
+		HelpFormatter formater = new HelpFormatter();
+		
+		formater.printHelp("CabTripCost", options);
+		System.exit(0);
+	}
+	 
+	/**
+	 * @param args
+	 */
+	private void processArgs(String[] args) throws Exception {
+		CommandLineParser parser = new BasicParser();
+		Options options = buildOptions();
+		CommandLine cmd = null;
+		try {
+			cmd = parser.parse(options, args);
+
+			if (cmd.hasOption("h"))
+				help(options);
+
+			if (cmd.hasOption("i")) {
+				inputPath = cmd.getOptionValue("i");
+			} else {
+				theLogger.log(Level.INFO, "Missing -i option");
+				help(options);
+			}
+
+			// output path
+			if (cmd.hasOption("o")) {
+				outputPath = cmd.getOptionValue("i");
+			} else {
+				theLogger.log(Level.INFO, "Missing -o option");
+				help(options);
+			}
+			
+			// numReducers
+			if (cmd.hasOption("r")) {
+				numReducers = Integer.parseInt(cmd.getOptionValue("i"));
+				if (numReducers <= 0)
+				{
+					theLogger.log(Level.INFO, "Invalid -r option");
+					help(options);
+				}
+			}
+
+			// charges
+			if (cmd.hasOption("C")) {
+				String[] bits = cmd.getOptionValue("C").split(",");
+				if (bits.length < 2)
+				{
+					theLogger.log(Level.INFO, "Invalid -C option");
+					help(options);
+				}
+				
+				initialCharge = Double.parseDouble(bits[0]);
+				chargePerKm = Double.parseDouble(bits[1]);
+				if (initialCharge < 0d || chargePerKm <= 0d)
+				{
+					theLogger.log(Level.INFO, "Bad trip charge values");
+					help(options);
+				}
+			}
+			else
+			{
+				help(options);
+			}
+			
+			// location
+			if (cmd.hasOption("L")) {
+				String[] bits = cmd.getOptionValue("L").split(",");
+				if (bits.length < 4)
+				{
+					theLogger.log(Level.INFO, "Invalid -L option");
+					help(options);
+				}
+				
+				referenceName = bits[0];
+				referenceLat = Double.parseDouble(bits[1]);
+				referenceLong = Double.parseDouble(bits[2]);
+				referenceRangeKm = Double.parseDouble(bits[3]);
+				
+				if (Math.abs(referenceLat) >= 90d 
+				||  Math.abs(referenceLong) > 180d 
+				||  Math.abs(referenceLong) <= 0d)
+				{
+					theLogger.log(Level.INFO, "Invalid lat/long or range");
+					help(options);
+				}
+			}
+		} catch (ParseException e) {
+			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+			help(options);
+		}
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.util.Tool#run(java.lang.String[])
 	 */
@@ -32,31 +167,34 @@ public class CabTripCost extends Configured implements Tool {
         conf.set("mapreduce.output.key.field.separator", ",");
         conf.set("mapreduce.textoutputformat.separator", ","); 
         conf.set("mapred.textoutputformat.separator", ",");
+        
+        // process cmdline
+        processArgs(args);
 
 
 		Job job = Job.getInstance(conf, "Cab trip cost calc");
 
-	    FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+	    FileInputFormat.addInputPath(job, new Path(inputPath));
+		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
 		// used for calculating taxi cost
-		conf.setDouble("SFO_lat", 37.62131);
-		conf.setDouble("SFO_long", -122.37896);
-		conf.setDouble("SFO_range", 1.00);
-		conf.setDouble("taxi_start_charge", 3.50);
-		conf.setDouble("taxi_charge_per_unit_dist", 1.71);
-		
-		// use user-supplied number of reduce tasks
-		int numReduceTasks = 1;
-		if (args.length > 2)
+		if (referenceName != null)
 		{
-			numReduceTasks = Integer.parseInt(args[2]);
-			if (numReduceTasks > 1)
-				job.setNumReduceTasks(numReduceTasks);
+			conf.set("reference_name", referenceName);
+			conf.setDouble("reference_lat", referenceLat);
+			conf.setDouble("reference_long", referenceLong);
+			conf.setDouble("reference_range", referenceRangeKm);
+			conf.setDouble("taxi_start_charge", initialCharge);
+			conf.setDouble("taxi_charge_per_unit_dist", chargePerKm);
+		}
+		// use user-supplied number of reduce tasks
+		if (numReducers > 1)
+		{
+			job.setNumReduceTasks(numReducers);
 		}
 
 		job.setJarByClass(CabTripCost.class);
-		job.setJobName("CabTripCost ["+args[0]+"], R"+Integer.toString(numReduceTasks));
+		job.setJobName("CabTripCost ["+inputPath+"], R"+Integer.toString(numReducers));
 
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
@@ -92,11 +230,6 @@ public class CabTripCost extends Configured implements Tool {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		// Make sure there are exactly 2 parameters
-		if (args.length < 2) {
-			theLogger.warn("CabTripCost <input-file> <output-dir> [<num-reduce-tasks>]");
-			throw new IllegalArgumentException("Usage: CabTripCost <input-dir> <output-dir> [<num-reduce-tasks>]");
-		}
 
 		int returnStatus = submitJob(args);
 		theLogger.info("returnStatus="+returnStatus);

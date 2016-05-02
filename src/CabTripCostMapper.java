@@ -17,9 +17,9 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 
 
 	// K=km, N=nautical miles, M=statute mile
-	private static double airport_lat;
-	private static double airport_long;
-	private static double airport_range;
+	private static double reference_lat;
+	private static double reference_long;
+	private static double reference_range;
 	private static double taxi_start_charge;
 	private static double taxi_charge_per_unit_dist;
 
@@ -30,9 +30,9 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		
 		Configuration conf = context.getConfiguration();
 		
-		airport_lat = conf.getDouble("SFO_lat", 37.62131);
-		airport_long = conf.getDouble("SFO_long", -122.37896);
-		airport_range = conf.getDouble("SFO_range", 1d);
+		reference_lat = conf.getDouble("reference_lat", 37.62131);
+		reference_long = conf.getDouble("reference_long", -122.37896);
+		reference_range = conf.getDouble("reference_range", 1d);
 		taxi_start_charge = conf.getDouble("taxi_start_charge", 3.5);
 		taxi_charge_per_unit_dist = conf.getDouble("taxi_charge_per_unit_dist", 1.71);
 	}
@@ -88,7 +88,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 	 * 
 	 * @param segments - string representation of CabTripSegments
 	 * @return - total distance, adding extra for non-following segments,
-	 * 		-1 if input malformed, or trip does not pass within range of airport
+	 * 		-1 if input malformed, or trip does not pass within range of reference
 	 * 
 	 */
 	protected static double getTripLength(CabTripSegment[] segments) throws IOException
@@ -104,7 +104,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		double last_long = -999d;
 		double last_ts = -999d;
 		
-		boolean in_airport_range = false;
+		boolean in_reference_range = false;
 		
 		// check each segment
 		for (CabTripSegment s : segments)
@@ -139,10 +139,10 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 				else if (tdiff > 600)
 					throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
 				
-				// check whether this inter-segment journey passes within range of the airport
+				// check whether this inter-segment journey passes within range of the reference
 				if (GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
-						airport_lat, airport_long, unit) <= airport_range)
-					in_airport_range = true;
+						reference_lat, reference_long, unit) <= reference_range)
+					in_reference_range = true;
 			}
 			trip_length += inter_seg_dist;
 			seg_dist = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
@@ -152,10 +152,10 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 				throw new IOException("Segment speed > 200 kph: "+Double.toString(seg_dist)+" km in "+Double.toString(end_ts-start_ts)+"s");
 			trip_length += seg_dist;
 			
-			// check whether this segment journey passes within range of the airport
+			// check whether this segment journey passes within range of the reference
 			if (GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
-					airport_lat, airport_long, unit) <= airport_range)
-				in_airport_range = true;			
+					reference_lat, reference_long, unit) <= reference_range)
+				in_reference_range = true;			
 
 			last_ts = end_ts;
 			last_lat = end_lat;
@@ -163,8 +163,8 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		}
 		//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
 		
-		// if the trip was not within tange of airport, return -1
-		if (in_airport_range)
+		// if the trip was not within tange of reference, return -1
+		if (in_reference_range)
 			return trip_length;
 		else
 			return -1d;
