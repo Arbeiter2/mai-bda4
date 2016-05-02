@@ -76,8 +76,13 @@ public class CabTripReducer
 	{
 		theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		Boolean running = inTrip.get(taxi_id);
+
+		// create new trip for this taxi if none currently active
+		// it means we saw a sudden "M"-"M"
 		if (running == null || !running)
-			return false;
+		{
+			startTrip(taxi_id);
+		}
 		
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList == null)
@@ -282,11 +287,15 @@ public class CabTripReducer
 			// meter started 
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
+				// reject records with long gap between start and end timestamps
+				long seg_gap = seg.getEnd_timestamp().get() - seg.getEnd_timestamp().get();
+				if (seg_gap < 0L || seg_gap > 180L)
+					continue;
+
 				// newly started
 				if (newTrip)
 				{
 					// then start a new one
-					startTrip(taxi);
 					addSegment(taxi, seg);
 					newTrip = false;
 				}
