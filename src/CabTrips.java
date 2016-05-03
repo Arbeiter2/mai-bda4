@@ -127,7 +127,7 @@ public class CabTrips extends Configured implements Tool{
 				String val = cmd.getOptionValue("d");
 				if (val.equals("h"))
 				{
-					epochTime = true;
+					epochTime = false;
 				}
 				else if (!val.equals("e"))	// bomb for not "c" or "s"
 				{
@@ -146,10 +146,14 @@ public class CabTrips extends Configured implements Tool{
 		
 		processArgs(args);
 		
-		conf.setBoolean("summaryOutput", summaryOutput);
+		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", " ");
+        conf.set("mapreduce.output.key.field.separator", " ");
+        conf.set("mapreduce.textoutputformat.separator", " "); 
+        
+        conf.setBoolean("summaryOutput", summaryOutput);
 		conf.setBoolean("epochTime", epochTime);
-		
-		Job job = Job.getInstance(conf, "Cab trip builder");
+
+ 		Job job = Job.getInstance(conf, "Cab trip builder");
 	    FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
