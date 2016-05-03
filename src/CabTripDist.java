@@ -237,13 +237,29 @@ public class CabTripDist extends Configured implements Tool{
 			// # <taxi-id> <start date> <start pos (lat)> <start pos (long)> ...
 			// # <end date> <end pos (lat)> <end pos (long)>
 			String[] tokens = value.toString().trim().split(" ");
+			double start_ts = Double.parseDouble(tokens[1]);
 			double lat1 = Double.parseDouble(tokens[2]);
 			double long1 = Double.parseDouble(tokens[3]);
+			double end_ts = Double.parseDouble(tokens[4]);
 			double lat2 = Double.parseDouble(tokens[5]);
 			double long2 = Double.parseDouble(tokens[6]);
 
 			double dist = GeoDistanceCalc.distance(lat1, long1, lat2,
 				long2, unit);
+			
+			// check whether journey is plausible
+			double duration = end_ts - start_ts;
+			
+			// ignore impossible timestamps
+			if (duration <= 0d)
+				return;
+			
+			// reject avg speed > 160 kmh
+			double speed = dist/(end_ts = start_ts);
+			if (speed > 160d)
+				return;
+						
+			// find relevant band identifier
 			int bandNum = getBand(dist, sanityLimit, distBandLimits);
 			if (bandNum != -1) {
 				Band.set(bandNum);
