@@ -3,6 +3,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.hadoop.conf.Configuration;
@@ -54,9 +55,15 @@ public class CabTripReducer
     {
 		theLogger.setLevel(Level.INFO);
 		Configuration conf = context.getConfiguration();
+
+	       for (Map.Entry<String, String> entry : conf) {
+	                   System.out.println(entry.getKey());
+	       }
 		
 		summaryOutput = conf.getBoolean("summaryOutput", true);
 		epochTime = conf.getBoolean("epochTime", true);
+		
+		theLogger.info("summaryOutput = "+summaryOutput+"; epochTime = "+epochTime);
 	}
 	
 	/**

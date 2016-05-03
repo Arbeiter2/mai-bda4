@@ -105,8 +105,6 @@ public class CabTrips extends Configured implements Tool{
 					help(options);
 				}
 			}
-			options.addOption("f", "format", true, "c=complete sequence data; s=summary (default: s)");
-			options.addOption("d", "date", true, "h=human readable; e=epoch seconds since 1970-01-01 (default: e)");		
 
 			// output format
 			if (cmd.hasOption("f")) {
