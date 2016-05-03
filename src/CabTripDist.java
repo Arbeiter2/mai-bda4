@@ -346,8 +346,8 @@ public class CabTripDist extends Configured implements Tool{
 		Job job = Job.getInstance(conf, "Cab trip length distribution");
 
 		// FileInputFormat.setMaxInputSplitSize(job, 100000);
-		FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileInputFormat.addInputPath(job, new Path(inputPath));
+		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
 		job.setJarByClass(CabTripDist.class);
 		job.setMapperClass(CabDistMapper.class);
