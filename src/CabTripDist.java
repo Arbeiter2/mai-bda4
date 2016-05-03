@@ -168,7 +168,7 @@ public class CabTripDist extends Configured implements Tool{
 			
 			if (cmd.hasOption("m")) {
 				maxDist = Double.parseDouble(cmd.getOptionValue("m"));
-				if (maxDist <= 0d || (int)(maxDist % bandwidth) == 0)
+				if (maxDist <= 0d || (int)(maxDist % bandwidth) != 0)
 				{
 					theLogger.log(Level.INFO, "Invalid -m option");
 					help(options);
