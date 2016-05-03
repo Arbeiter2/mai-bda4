@@ -56,14 +56,8 @@ public class CabTripReducer
 		theLogger.setLevel(Level.INFO);
 		Configuration conf = context.getConfiguration();
 
-	       for (Map.Entry<String, String> entry : conf) {
-	                   System.out.println(entry.getKey());
-	       }
-		
 		summaryOutput = conf.getBoolean("summaryOutput", true);
 		epochTime = conf.getBoolean("epochTime", true);
-		
-		theLogger.info("summaryOutput = "+summaryOutput+"; epochTime = "+epochTime);
 	}
 	
 	/**
@@ -249,14 +243,20 @@ public class CabTripReducer
 			{
 				// output only details of first and last waypoint
 				// 9 1267402225.0 37.79076 -122.40255 1267402400.0 37.78538 -122.40024
-				s.append(segList[0].getStart_timestamp());
+				if (!epochTime)
+					s.append(CabTripSegment.getFormattedDate(segList[0].getStart_timestamp().get(), formatter));
+				else
+					s.append(segList[0].getStart_timestamp());
 				s.append(" ");
 				s.append(segList[0].getStart_lat());
 				s.append(" ");
 				s.append(segList[0].getStart_long());
 				s.append(" ");
 
-				s.append(segList[segList.length-1].getEnd_timestamp());
+				if (!epochTime)
+					s.append(CabTripSegment.getFormattedDate(segList[segList.length-1].getStart_timestamp().get(), formatter));
+				else
+					s.append(segList[segList.length-1].getEnd_timestamp());
 				s.append(" ");
 				s.append(segList[segList.length-1].getEnd_lat());
 				s.append(" ");

@@ -116,7 +116,7 @@ public class CabTripSegment implements Writable {
 	 * @param fmt - required format
 	 * @return
 	 */
-	private String getFormattedDate(long epoch, DateFormat fmt)
+	public static String getFormattedDate(long epoch, DateFormat fmt)
 	{
 		Date date = new Date(epoch * 1000L);
 		return fmt.format(date);
