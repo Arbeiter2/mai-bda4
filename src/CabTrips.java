@@ -150,8 +150,8 @@ public class CabTrips extends Configured implements Tool{
 	public static void main(String[] args) throws Exception {
 		// Make sure there are exactly 2 parameters
 		if (args.length < 2) {
-			theLogger.warn("CabTrips <input-file> <output-dir> [<num-reduce-tasks>]");
-			throw new IllegalArgumentException("Usage: CabTrips <input-dir> <output-dir> [<num-reduce-tasks>]");
+			//theLogger.warn("CabTrips <input-file> <output-dir> [<num-reduce-tasks>]");
+			throw new IllegalArgumentException("Usage: CabTrips -i <input> -o <output-dir> [-r <num-reduce-tasks>]");
 		}
 
 		int returnStatus = submitJob(args);

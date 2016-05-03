@@ -356,7 +356,7 @@ public class CabTripDist extends Configured implements Tool{
 	* @throws Exception When there is communication problems with the job tracker.
 	*/
 	public static int submitJob(String[] args) throws Exception {
-		int returnStatus = ToolRunner.run(new CabTrips(), args);
+		int returnStatus = ToolRunner.run(new CabTripDist(), args);
 		return returnStatus;
 	}
 	
