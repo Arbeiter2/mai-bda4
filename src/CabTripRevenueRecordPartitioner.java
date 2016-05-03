@@ -1,10 +1,10 @@
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Partitioner;
 
-public class CabTripCostRecordPartitioner 
-	extends  Partitioner<CabTripCostRecord, Text> {
+public class CabTripRevenueRecordPartitioner 
+	extends  Partitioner<CabTripRevenueRecord, Text> {
 	@Override
-    public int getPartition(CabTripCostRecord pair, 
+    public int getPartition(CabTripRevenueRecord pair, 
                             Text data, 
                             int numberOfPartitions) {
     	// make sure that partitions are non-negative

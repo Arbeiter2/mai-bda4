@@ -27,9 +27,9 @@ import org.apache.log4j.Logger;
  * @author Delano Greenidge
  *
  */
-public class CabTripCost extends Configured implements Tool {
+public class CabTripRevenue extends Configured implements Tool {
 	
-	private static Logger theLogger = Logger.getLogger(CabTripCost.class);
+	private static Logger theLogger = Logger.getLogger(CabTripRevenue.class);
 	private String inputPath = null;
 	private String outputPath = null;
 	private int numReducers = 1;
@@ -203,22 +203,22 @@ public class CabTripCost extends Configured implements Tool {
 			job.setNumReduceTasks(numReducers);
 		}
 
-		job.setJarByClass(CabTripCost.class);
+		job.setJarByClass(CabTripRevenue.class);
 		job.setJobName("CabTripCost ["+inputPath+"], R"+Integer.toString(numReducers));
 
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 		
-		//job.setMapOutputKeyClass(CabTripCostRecord.class);
+		//job.setMapOutputKeyClass(CabTripRevenueRecord.class);
 		//job.setMapOutputValueClass(Text.class);
 
-		job.setOutputKeyClass(CabTripCostRecord.class);
+		job.setOutputKeyClass(CabTripRevenueRecord.class);
 		job.setOutputValueClass(Text.class);
 
-        job.setMapperClass(CabTripCostMapper.class);
+        job.setMapperClass(CabTripRevenueMapper.class);
         job.setReducerClass(CabTripCostReducer.class); 
-    	job.setPartitionerClass(CabTripCostRecordPartitioner.class);
-    	job.setGroupingComparatorClass(CabTripCostRecordComparator.class);
+    	job.setPartitionerClass(CabTripRevenueRecordPartitioner.class);
+    	job.setGroupingComparatorClass(CabTripRevenueRecordComp.class);
 
 		boolean status = job.waitForCompletion(true);
 		theLogger.info("run(): status="+status);
@@ -231,7 +231,7 @@ public class CabTripCost extends Configured implements Tool {
 	* @throws Exception When there is communication problems with the job tracker.
 	*/
 	public static int submitJob(String[] args) throws Exception {
-		int returnStatus = ToolRunner.run(new CabTripCost(), args);
+		int returnStatus = ToolRunner.run(new CabTripRevenue(), args);
 		return returnStatus;
 	}	
 		

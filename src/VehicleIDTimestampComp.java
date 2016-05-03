@@ -1,10 +1,10 @@
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableComparable;
 
-public class VehicleIDTimestampComparator 
+public class VehicleIDTimestampComp 
 	extends WritableComparator {
 
-	 public VehicleIDTimestampComparator() {
+	 public VehicleIDTimestampComp() {
 	     super(VehicleIDTimestamp.class, true);
 	 }
 	

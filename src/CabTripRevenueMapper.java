@@ -8,13 +8,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Text> {
-	private static Logger theLogger = Logger.getLogger(CabTripCostMapper.class);
+public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecord, Text> {
+	private static Logger theLogger = Logger.getLogger(CabTripRevenueMapper.class);
 
 	private Text trip_cost = new Text();
 	private static String trip_id;
 	private static String unit = "K";
-	private CabTripCostRecord timestamp_pair = new CabTripCostRecord();
+	private CabTripRevenueRecord timestamp_pair = new CabTripRevenueRecord();
 	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	private static Text tzStr = null;	// time zone string
 
@@ -113,7 +113,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 			{
 				tzStr = new Text();
 				tzStr.set(TimezoneMapper.latLngToTimezoneString(start_lat, start_long));
-				theLogger.info("CabTripCostMapper: using timezone ["+tzStr.toString()+"]");
+				theLogger.info("CabTripRevenueMapper: using timezone ["+tzStr.toString()+"]");
 
 			}
 
@@ -277,7 +277,7 @@ public class CabTripCostMapper extends Mapper<Text, Text, CabTripCostRecord, Tex
 		StringBuilder builder = new StringBuilder();
 		try
 		{
-			dist = CabTripCostMapper.getTripLength(segments);
+			dist = CabTripRevenueMapper.getTripLength(segments);
 			if (dist == -1d)
 				return;
 			

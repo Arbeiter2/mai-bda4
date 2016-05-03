@@ -17,8 +17,8 @@ import org.apache.hadoop.io.WritableComparable;
  * Used for creating sorted reducer output for CabTripCost, order by start then end time stamps
  * 
  */
-public class CabTripCostRecord 
-	implements Writable, WritableComparable<CabTripCostRecord> {
+public class CabTripRevenueRecord 
+	implements Writable, WritableComparable<CabTripRevenueRecord> {
 
     private LongWritable start_timestamp = new LongWritable();
 	private LongWritable end_timestamp= new LongWritable();
@@ -51,17 +51,17 @@ public class CabTripCostRecord
 	}    
 	
 	
-	public CabTripCostRecord() {
+	public CabTripRevenueRecord() {
 	    }
 
-    public CabTripCostRecord(long start_ts, long end_ts, String tzStr) {
+    public CabTripRevenueRecord(long start_ts, long end_ts, String tzStr) {
         this.start_timestamp.set(start_ts);
         this.end_timestamp.set(end_ts);
         this.timezoneStr.set(tzStr);
     }
 
-    public static CabTripCostRecord read(DataInput in) throws IOException {
-        CabTripCostRecord pair = new CabTripCostRecord();
+    public static CabTripRevenueRecord read(DataInput in) throws IOException {
+        CabTripRevenueRecord pair = new CabTripRevenueRecord();
         pair.readFields(in);
         return pair;
     }
@@ -81,7 +81,7 @@ public class CabTripCostRecord
     }
 
     //@Override
-    public int compareTo(CabTripCostRecord pair) {
+    public int compareTo(CabTripRevenueRecord pair) {
 		int cmp = (int)(this.getStart_timestamp().get() - pair.getStart_timestamp().get());
 		if (cmp == 0)
 			cmp = (int)(this.getEnd_timestamp().get() - pair.getEnd_timestamp().get());
@@ -97,7 +97,7 @@ public class CabTripCostRecord
            return false;
         }
 
-        CabTripCostRecord that = (CabTripCostRecord) o;
+        CabTripRevenueRecord that = (CabTripRevenueRecord) o;
         if (start_timestamp != null ? !start_timestamp.equals(that.start_timestamp) : that.start_timestamp != null) {
            return false;
         }

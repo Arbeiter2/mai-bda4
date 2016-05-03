@@ -123,7 +123,7 @@ public class CabTrips extends Configured implements Tool{
     	job.setMapperClass(CabTripMapper.class);
     	job.setReducerClass(CabTripReducer.class);		
     	job.setPartitionerClass(VehicleIDTimestampPartitioner.class);
-    	job.setGroupingComparatorClass(VehicleIDTimestampComparator.class);
+    	job.setGroupingComparatorClass(VehicleIDTimestampComp.class);
 
 		boolean status = job.waitForCompletion(true);
 		theLogger.info("run(): status="+status);

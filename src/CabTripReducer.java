@@ -74,7 +74,7 @@ public class CabTripReducer
 	 */
 	protected boolean addSegment(Text taxi_id, CabTripSegment seg)
 	{
-		theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
+		//theLogger.info("S+Taxi["+taxi_id.toString()+"]::["+seg.toString() + "]");
 		Boolean running = inTrip.get(taxi_id);
 
 		// create new trip for this taxi if none currently active
@@ -105,8 +105,8 @@ public class CabTripReducer
 		ArrayList<CabTripSegment> segList = segments.get(taxi_id);
 		if (segList != null)
 		{
-			if (running)
-				theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
+			//if (running)
+			//	theLogger.info("clearSegments("+taxi_id.toString()+"): ["+Integer.toString(segList.size())+"]");
 
 			segList.clear();
 		}
@@ -153,7 +153,7 @@ public class CabTripReducer
 		Integer currTripNum = tripCounter.get(taxi_id);
 		if (running)
 		{
-			theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
+			//theLogger.info("startTrip("+taxi_id.toString()+"): closing nr ["+currTripNum.toString()+"]");
 			clearSegments(taxi_id, running);
 			return false;
 		}
@@ -222,7 +222,7 @@ public class CabTripReducer
 			trip_id.set(getCurrentTripID(taxi));
 			segmentString.set(s.toString());
 
-			theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
+			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
 			
 			// emit 
 			context.write(trip_id, segmentString);
@@ -274,7 +274,7 @@ public class CabTripReducer
 			if (!newTrip && last != null 
 					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
 			{
-				theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
+				//theLogger.info("R:discard"+key.toString() + "[" + segment.toString()+"]");
 				continue;
 			}
 			
@@ -287,7 +287,9 @@ public class CabTripReducer
 			// meter started 
 			if (start_status.equals("E") && end_status.equals("M"))
 			{
-				// reject records with long gap between start and end timestamps
+				// reject records with negative or super-long gap between start and end timestamps
+				// 2811,'2010-02-27 23:58:57',37.75175,-122.39467,'E','2010-03-02 17:11:06',37.7832,-122.40298,'M'
+				// 2811,'2010-03-02 17:11:06',37.7832,-122.40298,'M','2010-03-02 17:12:08',37.78255,-122.4019,'M' 
 				long seg_gap = seg.getEnd_timestamp().get() - seg.getStart_timestamp().get();
 				if (seg_gap < 0L || seg_gap > 180L)
 					continue;
