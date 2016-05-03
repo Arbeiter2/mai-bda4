@@ -216,7 +216,7 @@ public class CabTripRevenue extends Configured implements Tool {
 		job.setOutputValueClass(Text.class);
 
         job.setMapperClass(CabTripRevenueMapper.class);
-        job.setReducerClass(CabTripCostReducer.class); 
+        job.setReducerClass(CabTripRevenueReducer.class); 
     	job.setPartitionerClass(CabTripRevenueRecordPartitioner.class);
     	job.setGroupingComparatorClass(CabTripRevenueRecordComp.class);
 

@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class CabTripCostReducer 
+public class CabTripRevenueReducer 
 	extends Reducer<CabTripRevenueRecord, Text, Text, Text> {
 
 	private Text keyStr = new Text();
