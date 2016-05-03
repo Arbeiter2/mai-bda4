@@ -270,7 +270,19 @@ public class CabTripReducer
 			// <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 			// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 			
-			// discard segments starting before end of last one
+			// discard segments starting before end of last one; this happens when a "consolidated"
+			// segment is followed by segments with the component subsegments 
+			/* 
+			 * consolidated segment A to C
+			   9,'2010-03-15 15:06:56',37.61554,-122.38507,'E','2010-03-15 15:09:56',37.62008,-122.39949,'M'
+			
+			   component segments A to B, B to C - both of these are discarded
+			   9,'2010-03-15 15:07:56',37.61708,-122.38764,'M','2010-03-15 15:08:56',37.61588,-122.38923,'M'
+			   9,'2010-03-15 15:08:56',37.61588,-122.38923,'M','2010-03-15 15:09:56',37.62008,-122.39949,'M'
+			   
+			   segment C to D
+			   9,'2010-03-15 15:09:56',37.62008,-122.39949,'M','2010-03-15 15:10:57',37.63574,-122.40345,'M'
+			*/
 			if (!newTrip && last != null 
 					&& segment.getStart_timestamp().get() < last.getEnd_timestamp().get())
 			{

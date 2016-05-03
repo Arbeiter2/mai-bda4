@@ -1,5 +1,12 @@
 import java.io.IOException;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -8,24 +15,57 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class CabTripDist {
-
+public class CabTripDist extends Configured implements Tool{
+	
 	private static Logger theLogger = Logger.getLogger(CabTripDist.class);
-
+	private String inputPath = null;
+	private String outputPath = null;
+	private double maxDist = 0d;
+	private double bandwidth = 0d;
+	
+	/**
+	 * creates an array of frequency distribution upper limits.
+	 * 
+	 * @param numBands - number of band limits
+	 * @param maxDist - upper limit
+	 * @param bandwidth - width of bands
+	 * @return
+	 */	
 	protected static double[] setBandLimits(int numBands, double maxDist, 
 		double bandwidth)
 	{
 		double[] distBandLimits = new double[numBands];
 		distBandLimits[0] = bandwidth;
-		distBandLimits[numBands - 1] = maxDist;
-		for (int i = 1; i < numBands - 1; i++) {
+		distBandLimits[numBands-1] = maxDist;
+		for (int i = 1; i < numBands -1; i++) {
 			distBandLimits[i] = bandwidth * (i+1);
 		}
 		return distBandLimits;
 	}
-
+	
+	
+	/**
+	 * returns the index of the frequency band into which a value falls, using the provided bands
+	 * For an output array a, using values v
+	 *  
+	 * 0 = v <= bandwidth
+	 * 1 = bandwidth < v <= 2 * bandwidth
+	 * 2 = 2 * bandwidth < v <= 3 * bandwidth
+	 * ....
+	 * numBands => maxDist-bandwidth < v <= maxDist
+	 * numBands + 1 => v > MaxDist
+	 *   
+	 *  
+	 * @param dist - value to be assigned to band
+	 * @param sanityLimit - absolute upper limit; reject all above this
+	 * @param bands - array of band limits
+	 * @return band identifier, -1 if value rejected 
+	 */
 	protected static int getBand(double dist, double sanityLimit, double[] bands) {
 		// bomb for trash values
 		if (dist == 0d || dist > sanityLimit)
@@ -34,7 +74,7 @@ public class CabTripDist {
 		// do ends first
 		if (dist < bands[0])
 			return 0;
-		else if (dist >= bands[bands.length - 1])
+		else if (dist > bands[bands.length - 1])
 			return bands.length-1;
 
 		// then middle
@@ -43,6 +83,110 @@ public class CabTripDist {
 				return i;
 		return -1;
 	}
+	
+	
+	/**
+	 * CLI processing
+	 * @return CLI Options
+	 */
+	private static Options buildOptions()
+	{
+		Options options = new Options();
+		
+		options.addOption("h", "help", false, "show help.");
+		options.addOption("i", "input", true, "input path");
+		options.addOption("o", "output", true, "output path");
+		options.addOption("w", "width", true, "width of band e.g. 1.0");
+		options.addOption("m", "maxdist", true, "lower bound of last band, i.e. 10 -> last band is for 10+;\nmust be integer multiple of width");
+
+		return options;
+	}
+	
+	/**
+	 * print help message and exit
+	 * @param options
+	 */
+	private static void help(Options options) 
+	{
+		// This prints out some help
+		HelpFormatter formater = new HelpFormatter();
+		
+		formater.printHelp("CabTripDist", options);
+		System.exit(0);
+	}
+	 
+	/**
+	 * process command line args, exit on failure
+	 * @param args
+	 */
+	private void processArgs(String[] args) throws Exception {
+		CommandLineParser parser = new BasicParser();
+		Options options = buildOptions();
+		CommandLine cmd = null;
+		try {
+			cmd = parser.parse(options, args);
+
+			if (cmd.hasOption("h"))
+				help(options);
+
+			if (cmd.hasOption("i")) {
+				inputPath = cmd.getOptionValue("i");
+			} else {
+				theLogger.log(Level.INFO, "Missing -i option");
+				help(options);
+			}
+
+			// output path
+			if (cmd.hasOption("o")) {
+				outputPath = cmd.getOptionValue("o");
+			} else {
+				theLogger.log(Level.INFO, "Missing -o option");
+				help(options);
+			}
+			
+			// verify paths
+			if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
+			{
+				theLogger.log(Level.INFO, "Invalid input/output path");
+				help(options);				
+			}
+			
+			// width
+			if (cmd.hasOption("w")) {
+				bandwidth = Double.parseDouble(cmd.getOptionValue("w"));
+				if (bandwidth <= 0d)
+				{
+					theLogger.log(Level.INFO, "Invalid -w option");
+					help(options);
+				}
+			}
+			else
+			{
+				theLogger.log(Level.INFO, "Invalid -w option");
+				help(options);
+			}
+			
+			if (cmd.hasOption("m")) {
+				maxDist = Double.parseDouble(cmd.getOptionValue("m"));
+				if (maxDist <= 0d || (int)(maxDist % bandwidth) == 0)
+				{
+					theLogger.log(Level.INFO, "Invalid -m option");
+					help(options);
+				}
+			}
+			else
+			{
+				theLogger.log(Level.INFO, "Missing -w option");
+				help(options);
+			}
+		} catch (ParseException e) {
+			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+			help(options);
+		}
+	}
+	
+
+	
 
 	public static class CabDistMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
 
@@ -84,6 +228,9 @@ public class CabTripDist {
 			}
 		}
 
+		/* (non-Javadoc)
+		 * @see org.apache.hadoop.mapreduce.Mapper#map(KEYIN, VALUEIN, org.apache.hadoop.mapreduce.Mapper.Context)
+		 */
 		@Override
 		public void map(Object key, Text value, Context context)
 			throws IOException, InterruptedException {
@@ -104,6 +251,10 @@ public class CabTripDist {
 			}
 		}
 	}
+	
+	
+	
+	
 
 	public static class CabDistReducer
 			extends Reducer<IntWritable, IntWritable,
@@ -165,29 +316,13 @@ public class CabTripDist {
 		}
 	}
 
-	public static void main(String[] args) throws Exception {
+	public int run(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 
 		conf.setStrings("unit", "K");
 		conf.setDouble("sanityLimit", 200d);
-		double maxDist = 0d;
-		double bandwidth = 0d;
 
-		boolean goodArgs = false;
-		if (args.length >= 4)
-		{
-			maxDist = Double.parseDouble(args[2]);
-			bandwidth = Double.parseDouble(args[3]);
-			if (maxDist > 0.0 && bandwidth > 0.0 && (int)(maxDist % bandwidth) == 0)
-				goodArgs = true;
-		}
-
-		if (!goodArgs)
-		{
-			System.out.println("Usage: CabTripDist <input-file> <output-path> <max dist> <bandwidth>");
-			System.out.println("<max-dist> must be a multiple of <bandwidth>");
-			return;
-		}
+		processArgs(args);
 
 		conf.setDouble("maxDist", maxDist);
 		conf.setDouble("bandwidth", bandwidth);
@@ -208,6 +343,30 @@ public class CabTripDist {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 
-		System.exit(job.waitForCompletion(true) ? 0 : 1);
+		boolean status = job.waitForCompletion(true);
+		theLogger.info("run(): status="+status);
+		return status ? 0 : 1;
 	}
+	
+	
+	
+	/**
+	* The main driver for word count map/reduce program.
+	* Invoke this method to submit the map/reduce job.
+	* @throws Exception When there is communication problems with the job tracker.
+	*/
+	public static int submitJob(String[] args) throws Exception {
+		int returnStatus = ToolRunner.run(new CabTrips(), args);
+		return returnStatus;
+	}
+	
+	
+	public static void main(String[] args) throws Exception {
+		// Make sure there are exactly 2 parameters
+		int returnStatus = submitJob(args);
+		theLogger.info("returnStatus="+returnStatus);
+		
+		System.exit(returnStatus);
+	}	
+	
 }
