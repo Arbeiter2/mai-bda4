@@ -25,13 +25,26 @@ public class CabTrips extends Configured implements Tool{
 	private static Logger theLogger = Logger.getLogger(CabTrips.class);
 	private String inputPath = null;
 	private String outputPath = null;
+	
+	// returns output with only start and end GPS markers
+	protected static boolean summaryOutput = true;
+	
+	// output timestamps as epoch time; alternative is the following format:
+	//
+	// YYYY-MM-DDTHH:mm:ssZ
+	// e.g. 2012-01-03T10:28+0300
+	//
+	protected static boolean epochTime = true;
+
 	private int numReducers = 1;
 	
 	private static Options buildOptions()
 	{
 		Options options = new Options();
 		
-		options.addOption("h", "help", false, "show help.");
+		options.addOption("f", "format", true, "c=complete sequence data; s=summary (default: s)");
+		options.addOption("d", "date", true, "h=human readable; e=epoch seconds since 1970-01-01 (default: e)");		
+		options.addOption("h", "help", false, "show help");
 		options.addOption("i", "input", true, "input path");
 		options.addOption("o", "output", true, "output path");
 		options.addOption("r", "reducers", true, "number of reducers");
@@ -92,6 +105,35 @@ public class CabTrips extends Configured implements Tool{
 					help(options);
 				}
 			}
+			options.addOption("f", "format", true, "c=complete sequence data; s=summary (default: s)");
+			options.addOption("d", "date", true, "h=human readable; e=epoch seconds since 1970-01-01 (default: e)");		
+
+			// output format
+			if (cmd.hasOption("f")) {
+				String val = cmd.getOptionValue("f");
+				if (val.equals("c"))
+				{
+					summaryOutput = false;
+					help(options);
+				}
+				else if (!val.equals("s"))	// bomb for not "c" or "s"
+				{
+					help(options);
+				}		
+			}
+
+			// date format
+			if (cmd.hasOption("d")) {
+				String val = cmd.getOptionValue("d");
+				if (val.equals("h"))
+				{
+					epochTime = true;
+				}
+				else if (!val.equals("e"))	// bomb for not "c" or "s"
+				{
+					help(options);
+				}		
+			}		
 		} catch (ParseException e) {
 			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
 			help(options);
@@ -103,6 +145,9 @@ public class CabTrips extends Configured implements Tool{
 		Configuration conf = new Configuration();
 		
 		processArgs(args);
+		
+		conf.setBoolean("summaryOutput", summaryOutput);
+		conf.setBoolean("epochTime", epochTime);
 		
 		Job job = Job.getInstance(conf, "Cab trip builder");
 	    FileInputFormat.addInputPath(job, new Path(inputPath));

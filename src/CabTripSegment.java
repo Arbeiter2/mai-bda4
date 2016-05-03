@@ -97,15 +97,15 @@ public class CabTripSegment implements Writable {
 		//s.append(end_status);
 		//s.append(",");
 		s.append(start_timestamp.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(start_lat.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(start_long.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(end_timestamp.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(end_lat.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(end_long.toString());
 		
 		return s.toString();
@@ -139,15 +139,15 @@ public class CabTripSegment implements Writable {
 		//s.append(end_status);
 		//s.append(",");
 		s.append(getFormattedDate(start_timestamp.get(), fmt));
-		s.append(",");
+		s.append(" ");
 		s.append(start_lat.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(start_long.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(getFormattedDate(end_timestamp.get(), fmt));
-		s.append(",");
+		s.append(" ");
 		s.append(end_lat.toString());
-		s.append(",");
+		s.append(" ");
 		s.append(end_long.toString());
 		
 		return s.toString();

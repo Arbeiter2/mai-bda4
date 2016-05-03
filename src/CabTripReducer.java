@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimeZone;
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.log4j.Level;
@@ -26,6 +28,17 @@ public class CabTripReducer
 	// e.g. 2010-12-23 09:12:09 -05:00 == EST
 	protected static DateFormat formatter = null;
 	
+	// returns output with only start and end GPS markers
+	protected static boolean summaryOutput = true;
+	
+	// output timestamps as epoch time; alternative is the following format:
+	// YYYY-MM-DDTHH:mm:ssZ
+	// e.g. 2012-01-03T10:28+0300
+	//
+	protected static boolean epochTime = true;
+	
+	
+	
 	/**
 	 * records current trip ID for each taxi encountered in input
 	 */
@@ -40,6 +53,10 @@ public class CabTripReducer
             InterruptedException
     {
 		theLogger.setLevel(Level.INFO);
+		Configuration conf = context.getConfiguration();
+		
+		summaryOutput = conf.getBoolean("summaryOutput", true);
+		epochTime = conf.getBoolean("epochTime", true);
 	}
 	
 	/**
@@ -61,7 +78,7 @@ public class CabTripReducer
 		}
 		else
 		{
-			return taxi_id.toString() + "," + currTripNum.toString();
+			return taxi_id.toString() + " " + currTripNum.toString();
 		}
 	}
 
@@ -195,7 +212,7 @@ public class CabTripReducer
 		if (segList != null)
 		{
 			// create date parser if needed
-			if (formatter == null)
+			if (!epochTime && formatter == null)
 			{
 				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 				
@@ -211,15 +228,37 @@ public class CabTripReducer
 			}
 
 			StringBuilder s = new StringBuilder();
-			for (int i=0; i < segList.length-1; i++)
+			// generate giant ugly string
+			if (!summaryOutput)
 			{
-				s.append(segList[i].toString(formatter));
-				s.append(";");
+				for (int i=0; i < segList.length-1; i++)
+				{
+					s.append(segList[i].toString(formatter));
+					s.append(";");
+				}
+				s.append(segList[segList.length-1].toString(formatter));
 			}
-			s.append(segList[segList.length-1].toString(formatter));
+			else
+			{
+				// output only details of first and last waypoint
+				// 9 1267402225.0 37.79076 -122.40255 1267402400.0 37.78538 -122.40024
+				s.append(segList[0].getStart_timestamp());
+				s.append(" ");
+				s.append(segList[0].getStart_lat());
+				s.append(" ");
+				s.append(segList[0].getStart_long());
+				s.append(" ");
+
+				s.append(segList[segList.length-1].getEnd_timestamp());
+				s.append(" ");
+				s.append(segList[segList.length-1].getEnd_lat());
+				s.append(" ");
+				s.append(segList[segList.length-1].getEnd_long());
+			}
 			
 			// get output key as (taxi_id,taxi_trip_number)
-			trip_id.set(getCurrentTripID(taxi));
+			//trip_id.set(getCurrentTripID(taxi));
+			trip_id.set(taxi);
 			segmentString.set(s.toString());
 
 			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
