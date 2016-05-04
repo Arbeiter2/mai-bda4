@@ -112,7 +112,6 @@ public class CabTrips extends Configured implements Tool{
 				if (val.equals("c"))
 				{
 					summaryOutput = false;
-					help(options);
 				}
 				else if (!val.equals("s"))	// bomb for not "c" or "s"
 				{

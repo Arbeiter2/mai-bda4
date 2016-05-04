@@ -119,7 +119,7 @@ public class CabTripRevenueRecord
     public String toString() {
     	StringBuilder builder = new StringBuilder();
     	builder.append(start_timestamp);
-    	builder.append(",");
+    	builder.append(" ");
     	builder.append(end_timestamp);
 
     	return builder.toString();
@@ -132,21 +132,26 @@ public class CabTripRevenueRecord
 	 */
 	private String getFormattedDate(long epoch, DateFormat fmt)
 	{
+		if (fmt == null)
+			return Long.toString(epoch);
+		
 		Date date = new Date(epoch * 1000L);
 		timeZone = TimeZone.getTimeZone(timezoneStr.toString());
 		fmt.setTimeZone(timeZone);
 		return fmt.format(date);
 	}
 	
+	/**
+	 * creates string representation; parses timestamps into human readable form if given a DateFormat
+	 * @param fmt
+	 * @return
+	 */
 	public String toString(DateFormat fmt)
 	{
-		if (fmt == null)
-			return this.toString();
-
 		StringBuilder s = new StringBuilder();
 
 		s.append(getFormattedDate(start_timestamp.get(), fmt));
-		s.append(",");
+		s.append(" ");
 		s.append(getFormattedDate(end_timestamp.get(), fmt));
 		
 		

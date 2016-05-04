@@ -230,6 +230,7 @@ public class CabTripReducer
 
 			StringBuilder s = new StringBuilder();
 			// generate giant ugly string
+			// all segments are output, separated by semicolons
 			if (!summaryOutput)
 			{
 				for (int i=0; i < segList.length-1; i++)

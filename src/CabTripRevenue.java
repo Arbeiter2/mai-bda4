@@ -36,6 +36,17 @@ public class CabTripRevenue extends Configured implements Tool {
 	private double initialCharge = 0.00;
 	private double chargePerKm = 0.00;
 	
+	// true - use distance between start and end points of trip to calculate revenue
+	// false - use accumulated segment distance to calculate trip length and revenue
+	protected static boolean summaryOutput = false;
+	
+	// output timestamps as epoch time; alternative is the following format:
+	//
+	// YYYY-MM-DDTHH:mm:ssZ
+	// e.g. 2012-01-03T10:28+0300
+	//
+	protected static boolean epochTime = true;	
+	
 	// by default cost calculator finds cost of all trips; 
 	// if reference point is provided, only trips passing within provided range around
 	// provided lat/long reference point will be returned
@@ -56,6 +67,8 @@ public class CabTripRevenue extends Configured implements Tool {
 		options.addOption("r", "reducers", true, "number of reducers");
 		options.addOption("C", "charge", true, "taxi charge (format: <initial charge>,<cost-per-km>)");
 		options.addOption("L", "location", true, "reference location, and range from ref (format: <string-ref>,<lat>,<long>,<range-km>)");
+		options.addOption("s", "summary", false, "use straight line distance for revenue calc");
+		options.addOption("d", "date", true, "h=human readable; e=epoch seconds since 1970-01-01 (default: e)");		
 
 		return options;
 	}
@@ -158,6 +171,24 @@ public class CabTripRevenue extends Configured implements Tool {
 					help(options);
 				}
 			}
+			
+			// use straight-line distance between start and end points
+			if (cmd.hasOption("s"))
+				summaryOutput = true;
+			
+			// date format
+			if (cmd.hasOption("d")) {
+				String val = cmd.getOptionValue("d");
+				if (val.equals("h"))
+				{
+					epochTime = false;
+				}
+				else if (!val.equals("e"))	// bomb for not "c" or "s"
+				{
+					help(options);
+				}		
+			}	
+			
 		} catch (ParseException e) {
 			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
 			help(options);
@@ -170,10 +201,10 @@ public class CabTripRevenue extends Configured implements Tool {
 	 */
 	public int run(String[] args) throws Exception {
 		Configuration conf = new Configuration();
-		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t");
-        conf.set("mapreduce.output.key.field.separator", ",");
-        conf.set("mapreduce.textoutputformat.separator", ","); 
-        conf.set("mapred.textoutputformat.separator", ",");
+		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", " ");
+        conf.set("mapreduce.output.key.field.separator", " ");
+        conf.set("mapreduce.textoutputformat.separator", " "); 
+        conf.set("mapred.textoutputformat.separator", " ");
         
         // process cmdline
         processArgs(args);
@@ -188,9 +219,12 @@ public class CabTripRevenue extends Configured implements Tool {
 			conf.setDouble("reference_lat", referenceLat);
 			conf.setDouble("reference_long", referenceLong);
 			conf.setDouble("reference_range", referenceRangeKm);
-			conf.setDouble("taxi_start_charge", initialCharge);
-			conf.setDouble("taxi_charge_per_unit_dist", chargePerKm);
 		}
+		conf.setDouble("taxi_start_charge", initialCharge);
+		conf.setDouble("taxi_charge_per_unit_dist", chargePerKm);
+		conf.setBoolean("CabTripRevenue.summaryOutput", summaryOutput);
+		conf.setBoolean("CabTripRevenue.epochTime", epochTime);
+		
 		
 		// create Job *after* configuration is complete
 		Job job = Job.getInstance(conf, "Cab trip cost calc");
