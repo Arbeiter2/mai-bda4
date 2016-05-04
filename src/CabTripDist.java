@@ -255,7 +255,7 @@ public class CabTripDist extends Configured implements Tool{
 				return;
 			
 			// reject avg speed > 160 kmh
-			double speed = dist/(end_ts = start_ts);
+			double speed = 3600d * dist/(end_ts = start_ts);
 			if (speed > 160d)
 				return;
 						
