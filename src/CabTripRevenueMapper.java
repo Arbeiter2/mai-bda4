@@ -111,7 +111,7 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		// parse each of the six (6) comma-separated components
 		for (String s : seg)
 		{
-			String[] bits = s.split(",");
+			String[] bits = s.split(" ");
 			
 			if (bits.length != 6)
 				return null;
@@ -215,6 +215,58 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		if (segments == null || segments.length == 0)
 			return -1d;
 		
+		
+		// check each segment
+		for (CabTripSegment s : segments)
+		{
+			start_ts = s.getStart_timestamp().get();
+			start_lat = s.getStart_lat().get();
+			start_long = s.getStart_long().get();
+			
+			end_ts = s.getEnd_timestamp().get();
+			end_lat = s.getEnd_lat().get();
+			end_long = s.getEnd_long().get();
+			
+
+			// it is possible for GPS samples to have gaps, so that end timestamp of one segment
+			// does not match the start of next one; in this case, we must
+			// calculate the distance between start of current sample and end of last one
+			inter_seg_dist = 0d;
+			if (last_ts != -999 && !(last_lat == start_lat && last_long == start_long))
+			{
+				inter_seg_dist = GeoDistanceCalc.distance(last_lat, last_long, start_lat, start_long, unit);
+				double tdiff = start_ts - last_ts;
+				if (tdiff < 0)
+					throw new IOException("Segment timestamps out of sequence");
+				else if (tdiff > 600)
+					throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
+				
+				// check whether this inter-segment journey passes within range of the reference
+				if (useReference && GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
+						reference_lat, reference_long, unit) <= reference_range)
+					in_reference_range = true;
+			}
+			trip_length += inter_seg_dist;
+			seg_dist = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
+			
+			// reject segments with average speed over 200 kmh
+			if ((3600*seg_dist)/(end_ts-start_ts) > 200d)
+				throw new IOException("Segment speed > 200 kph: "+
+						Double.toString(seg_dist)+" km in "+Double.toString(end_ts-start_ts)+"s");
+			trip_length += seg_dist;
+			
+			// check whether this segment journey passes within range of the reference
+			if (useReference && GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
+					reference_lat, reference_long, unit) <= reference_range)
+				in_reference_range = true;			
+
+			last_ts = end_ts;
+			last_lat = end_lat;
+			last_long = end_long;
+		}
+		//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
+	
+
 		// if we are doing summary output, just use the start and end points of the segments
 		if (summaryOutput)
 		{
@@ -227,65 +279,8 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 			end_long = segments[segments.length-1].getEnd_long().get();
 			
 			trip_length = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
-
-			// check whether this segment journey passes within range of the reference
-			if (useReference && GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
-					reference_lat, reference_long, unit) <= reference_range)
-				in_reference_range = true;	
 		}
-		else
-		{
-			// check each segment
-			for (CabTripSegment s : segments)
-			{
-				start_ts = s.getStart_timestamp().get();
-				start_lat = s.getStart_lat().get();
-				start_long = s.getStart_long().get();
-				
-				end_ts = s.getEnd_timestamp().get();
-				end_lat = s.getEnd_lat().get();
-				end_long = s.getEnd_long().get();
-				
 	
-				// it is possible for GPS samples to have gaps, so that end timestamp of one segment
-				// does not match the start of next one; in this case, we must
-				// calculate the distance between start of current sample and end of last one
-				inter_seg_dist = 0d;
-				if (last_ts != -999 && !(last_lat == start_lat && last_long == start_long))
-				{
-					inter_seg_dist = GeoDistanceCalc.distance(last_lat, last_long, start_lat, start_long, unit);
-					double tdiff = start_ts - last_ts;
-					if (tdiff < 0)
-						throw new IOException("Segment timestamps out of sequence");
-					else if (tdiff > 600)
-						throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
-					
-					// check whether this inter-segment journey passes within range of the reference
-					if (useReference && GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
-							reference_lat, reference_long, unit) <= reference_range)
-						in_reference_range = true;
-				}
-				trip_length += inter_seg_dist;
-				seg_dist = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
-				
-				// reject segments with average speed over 200 kmh
-				if ((3600*seg_dist)/(end_ts-start_ts) > 200d)
-					throw new IOException("Segment speed > 200 kph: "+
-							Double.toString(seg_dist)+" km in "+Double.toString(end_ts-start_ts)+"s");
-				trip_length += seg_dist;
-				
-				// check whether this segment journey passes within range of the reference
-				if (useReference && GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
-						reference_lat, reference_long, unit) <= reference_range)
-					in_reference_range = true;			
-	
-				last_ts = end_ts;
-				last_lat = end_lat;
-				last_long = end_long;
-			}
-			//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
-		}
-
 		// if the trip was not within tange of reference, return -1
 		if (useReference)
 		{
