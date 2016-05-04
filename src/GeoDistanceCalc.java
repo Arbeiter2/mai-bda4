@@ -23,13 +23,12 @@ public final class GeoDistanceCalc
 	public static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
 		double phi_1 = deg2rad(lat1);
 		double phi_2 = deg2rad(lat2);
-		
+
 		double d_phi = deg2rad(lat1 - lat2);
 		double d_lambda = deg2rad(lon1 - lon2);
 		double a = Math.pow(Math.sin(d_phi/2) * Math.sin(d_phi/2), 2) +
 		           Math.cos(phi_1) * Math.cos(phi_2) *
 		           Math.pow(Math.sin(d_lambda/2), 2);
-				
 				
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 		
