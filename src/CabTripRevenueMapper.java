@@ -49,11 +49,11 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		useReference = conf.getBoolean("useReference", false);
 		if (useReference)
 		{
-			theLogger.info("Using reference point ["+reference_name+"]");
 			reference_name = conf.get("reference_name");
 			reference_lat = conf.getDouble("reference_lat", 37.62131);
 			reference_long = conf.getDouble("reference_long", -122.37896);
 			reference_range = conf.getDouble("reference_range", 1d);
+			theLogger.info("Using reference point ["+reference_name+"]");
 		}
 		else
 		{
