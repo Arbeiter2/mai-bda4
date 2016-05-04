@@ -247,6 +247,10 @@ public class CabTripDist extends Configured implements Tool{
 			double dist = GeoDistanceCalc.distance(lat1, long1, lat2,
 				long2, unit);
 			
+			// ignore insanely short trips (less than 10m)
+			if (dist < 0.01d)
+				return;
+			
 			// check whether journey is plausible
 			double duration = end_ts - start_ts;
 			
@@ -255,7 +259,7 @@ public class CabTripDist extends Configured implements Tool{
 				return;
 			
 			// reject avg speed > 160 kmh
-			double speed = 3600d * dist/(end_ts = start_ts);
+			double speed = 3600d * dist/duration;
 			if (speed > 160d)
 				return;
 						

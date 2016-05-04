@@ -65,26 +65,6 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		
 		// by default use accumulated segment distance
 		summaryOutput = conf.getBoolean("CabTripRevenue.summaryOutput", false);
-		
-		/*
-		StringBuilder s = new StringBuilder();
-		s.append("useReference: ");
-		s.append(useReference);
-		s.append(", reference_name: ");
-		s.append(reference_name);
-		s.append(", reference_lat: ");
-		s.append(reference_lat);
-		s.append(", reference_long: ");
-		s.append(reference_long);
-		s.append(", reference_range: ");
-		s.append(reference_range);
-		s.append(", taxi_start_charge: ");
-		s.append(taxi_start_charge);
-		s.append(", taxi_charge_per_unit_dist: ");
-		s.append(taxi_charge_per_unit_dist);
-		
-		System.out.println("mapper config: "+s.toString());
-		*/
 	}
 	
 	/**
@@ -281,7 +261,7 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 			trip_length = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
 		}
 	
-		// if the trip was not within tange of reference, return -1
+		// if the trip was not within range of reference, return -1
 		if (useReference)
 		{
 			if (in_reference_range)
@@ -349,8 +329,6 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 			// construct record
 			builder.setLength(0);
 
-			//builder.append(segments[segments.length-1].getEnd_timestamp().get());
-			//builder.append(",");
 			builder.append(dist);
 			builder.append(" ");
 			builder.append(cost);
