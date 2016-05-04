@@ -146,6 +146,7 @@ public class CabTrips extends Configured implements Tool{
 		conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", " ");
         conf.set("mapreduce.output.key.field.separator", " ");
         conf.set("mapreduce.textoutputformat.separator", " "); 
+        conf.set("mapred.textoutputformat.separator", " ");
         
         conf.setBoolean("summaryOutput", summaryOutput);
 		conf.setBoolean("epochTime", epochTime);
