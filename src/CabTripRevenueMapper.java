@@ -148,7 +148,7 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 						epochTime = new Boolean(true);
 				} catch (NumberFormatException e)
 				{
-					if (epochTime)
+					if (epochTime != null)
 					{
 						theLogger.error( e.getMessage(), e );
 						return null;
@@ -320,9 +320,10 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 		// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 
-		if (key.toString().split(" ").length < 2)
-			throw new IOException("Malformed trip ident");
+		//if (key.toString().split(" ").length < 2)
+		//	throw new IOException("Malformed trip ident");
 		
+		// now just a taxi id
 		trip_id = key.toString();
 		
 		// create segment objects from semicolon string list; bomb if any parse errors found

@@ -29,7 +29,7 @@ public class CabTripRevenueReducer
 		// by default use accumulated segment distance
 		epochTime = conf.getBoolean("CabTripRevenue.epochTime", true);
 
-		if (epochTime && formatter == null)
+		if (!epochTime && formatter == null)
 		{
 			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		}
