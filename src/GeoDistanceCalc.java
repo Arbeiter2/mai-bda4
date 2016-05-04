@@ -11,7 +11,8 @@ public final class GeoDistanceCalc
 	
 	
 	/**
-	 * Find the distance between two pairs of coordinatas A and B
+	 * Find the distance between two pairs of coordinatas A and B using haversine formula
+	 * 
 	 * @param lat1 - latitude of point A
 	 * @param lon1 - longitude of point A
 	 * @param lat2 - latitude of point B
@@ -20,18 +21,26 @@ public final class GeoDistanceCalc
 	 * @return 
 	 */
 	public static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
-		double d_phi = deg2rad(lat1) - deg2rad(lat2);
-		double d_lambda = deg2rad(lon1) - deg2rad(lon2);
-		double phi_m = (deg2rad(lat1) + deg2rad(lat2)) / 2.0;
-
-		double dist = Math.sqrt(Math.pow(d_phi, 2) + Math.pow((Math.cos(phi_m) * d_lambda), 2));
+		double phi_1 = deg2rad(lat1);
+		double phi_2 = deg2rad(lat2);
+		
+		double d_phi = deg2rad(lat1 - lat2);
+		double d_lambda = deg2rad(lon1 - lon2);
+		double a = Math.pow(Math.sin(d_phi/2) * Math.sin(d_phi/2), 2) +
+		           Math.cos(phi_1) * Math.cos(phi_2) *
+		           Math.pow(Math.sin(d_lambda/2), 2);
+				
+				
+		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+		
+		double dist = c * earthRadius_km;
 
 		if (unit.equals("M"))
-			dist = dist * earthRadius_miles;
+			dist = c * earthRadius_miles;
 		else if (unit.equals("K"))
-			dist = dist * earthRadius_km;
+			dist = c * earthRadius_km;
 		else if (unit.equals("N"))
-			dist = dist * earthRadius_Nm;
+			dist = c * earthRadius_Nm;
 
 		return (dist);
 	}
