@@ -66,21 +66,21 @@ public class CabTripRevenueRecord
         return pair;
     }
 
-    //@Override
+    @Override
     public void write(DataOutput out) throws IOException {
     	start_timestamp.write(out);
     	end_timestamp.write(out);
         timezoneStr.write(out);
     }
 
-    //@Override
+    @Override
     public void readFields(DataInput in) throws IOException {
     	start_timestamp.readFields(in);
         end_timestamp.readFields(in);
         timezoneStr.readFields(in);
     }
 
-    //@Override
+    @Override
     public int compareTo(CabTripRevenueRecord pair) {
 		int cmp = (int)(this.getStart_timestamp().get() - pair.getStart_timestamp().get());
 		if (cmp == 0)

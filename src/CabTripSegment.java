@@ -71,7 +71,7 @@ public class CabTripSegment implements Writable {
     }
 
     
-    //@Override
+    @Override
     public void write(DataOutput out) throws IOException {
         start_status.write(out);
         start_timestamp.write(out);
@@ -84,7 +84,7 @@ public class CabTripSegment implements Writable {
         end_long.write(out);
     }
 
-    //@Override
+    @Override
     public void readFields(DataInput in) throws IOException {
         start_status.readFields(in);
         start_timestamp.readFields(in);

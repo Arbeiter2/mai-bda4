@@ -1,15 +1,13 @@
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.WritableComparable;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
 
 public class CabIDTimestamp 
-    implements Writable, WritableComparable<CabIDTimestamp> {
+    implements WritableComparable<CabIDTimestamp> {
 
     /**
      * tripData contains the following fields extracted from each record:
@@ -32,7 +30,6 @@ public class CabIDTimestamp
 
     public CabIDTimestamp(String vehicleID, long timestamp/*, Text m*/) {
         this.vehicleID.set(vehicleID);
-        //this.tripData = m;
         this.timestamp.set(timestamp);
     }
 
@@ -42,21 +39,21 @@ public class CabIDTimestamp
         return pair;
     }
 
-    //@Override
+    @Override
     public void write(DataOutput out) throws IOException {
         vehicleID.write(out);
         timestamp.write(out);
         //tripData.write(out);
     }
 
-    //@Override
+    @Override
     public void readFields(DataInput in) throws IOException {
         vehicleID.readFields(in);
         timestamp.readFields(in);
         //tripData.readFields(in);
     }
 
-    //@Override
+    @Override
     public int compareTo(CabIDTimestamp pair) {
         int compareValue = Integer.parseInt(this.getVehicleID().toString()) -
 			Integer.parseInt(pair.getVehicleID().toString());
@@ -74,10 +71,6 @@ public class CabIDTimestamp
         return vehicleID;
     }   
      
-    /*
-	public Text getTripData() {
-        return tripData;
-    }*/
 
     public LongWritable gettimestamp() {
         return timestamp;
@@ -87,10 +80,6 @@ public class CabIDTimestamp
         vehicleID.set(vehicleIDAsString);
     }
     
-    /*
-	public void setTripData(Text m) {
-    	tripData = m;
-    }*/
     
     public void settimestamp(long timestamp) {
         this.timestamp.set(timestamp);
