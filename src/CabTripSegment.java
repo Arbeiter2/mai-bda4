@@ -26,6 +26,8 @@ public class CabTripSegment implements Writable {
     private LongWritable end_timestamp = new LongWritable(); // epoch time of segment end
     private DoubleWritable end_lat = new DoubleWritable();     // latitude at segment end
     private DoubleWritable end_long = new DoubleWritable();        // longitude at segment end
+    
+    private CabTripSegment next = null;
 	
 	public CabTripSegment(String start_status, long start_timestamp, double start_lat, double start_long,
 			String end_status, long end_timestamp, double end_lat, double end_long)
@@ -62,6 +64,13 @@ public class CabTripSegment implements Writable {
         return seg;
     }
 
+    public void append(CabTripSegment seg)
+    {
+        if (seg != this)
+            next = seg;
+    }
+
+    
     //@Override
     public void write(DataOutput out) throws IOException {
         start_status.write(out);
