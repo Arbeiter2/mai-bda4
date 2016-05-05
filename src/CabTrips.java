@@ -171,6 +171,8 @@ public class CabTrips extends Configured implements Tool{
     	job.setReducerClass(CabTripReducer.class);		
     	job.setPartitionerClass(CabIDTimestampPartitioner.class);
     	job.setGroupingComparatorClass(CabIDTimestampComp.class);
+    	job.setCombinerClass(CabIDCombiner.class);
+    	job.setCombinerKeyGroupingComparatorClass(CabIDCombiner.CabIDCombinerGroupComp.class);
     	job.setSortComparatorClass(CabIDTimestampSortComp.class);
 
 		boolean status = job.waitForCompletion(true);
