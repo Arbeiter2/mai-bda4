@@ -25,7 +25,7 @@ bin/CabIDTimestamp.class: src/CabIDTimestamp.java
 bin/CabIDTimestampComp.class: src/CabIDTimestampComp.java
 	$(JAVAC) src/CabIDTimestampComp.java
 bin/CabIDTimestampSortComp.class: src/CabIDTimestampSortComp.java
-	$(JAVAC) src/CabIDTimestampComp.java	
+	$(JAVAC) src/CabIDTimestampSortComp.java	
 bin/CabIDTimestampPartitioner.class: src/CabIDTimestampPartitioner.java
 	$(JAVAC) src/CabIDTimestampPartitioner.java
 bin/CabTrips.class: src/CabTrips.java
@@ -47,10 +47,10 @@ bin/CabTripRevenue.class: src/CabTripRevenue.java
 	$(JAVAC) src/CabTripRevenue.java
 
 bin/Exercise2.jar:	bin/CabTripSegment.class bin/CabIDTimestamp.class bin/CabIDTimestampComp.class \
-	bin/CabIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class \
+	bin/CabIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class bin/CabIDTimestampSortComp.class\
 	bin/CabTripMapper.class  bin/CabTripReducer.class bin/CabTrips.class bin/CabTripRevenueRecord.class  \
 	bin/CabTripRevenueMapper.class bin/CabTripRevenueReducer.class bin/CabTripRevenueRecordComp.class \
-	bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class bin/CabIDTimestampSortComp.class
+	bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class 
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class CabTripRevenue.class CabTripRevenueMapper.class \
 		CabIDTimestamp.class CabIDTimestampComp.class CabIDTimestampPartitioner.class CabIDTimestampSortComp.class \
