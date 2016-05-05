@@ -1,12 +1,10 @@
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Mapper.Context;
-import org.apache.log4j.Level;
+
 
 public class CabTripRevenueReducer 
 	extends Reducer<CabTripRevenueRecord, Text, Text, Text> {

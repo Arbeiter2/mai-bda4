@@ -8,8 +8,8 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 
-public class VehicleIDTimestamp 
-    implements Writable, WritableComparable<VehicleIDTimestamp> {
+public class CabIDTimestamp 
+    implements Writable, WritableComparable<CabIDTimestamp> {
 
     /**
      * tripData contains the following fields extracted from each record:
@@ -27,17 +27,17 @@ public class VehicleIDTimestamp
     private LongWritable timestamp = new LongWritable();
 
 
-    public VehicleIDTimestamp() {
+    public CabIDTimestamp() {
     }
 
-    public VehicleIDTimestamp(String vehicleID, long timestamp/*, Text m*/) {
+    public CabIDTimestamp(String vehicleID, long timestamp/*, Text m*/) {
         this.vehicleID.set(vehicleID);
         //this.tripData = m;
         this.timestamp.set(timestamp);
     }
 
-    public static VehicleIDTimestamp read(DataInput in) throws IOException {
-        VehicleIDTimestamp pair = new VehicleIDTimestamp();
+    public static CabIDTimestamp read(DataInput in) throws IOException {
+        CabIDTimestamp pair = new CabIDTimestamp();
         pair.readFields(in);
         return pair;
     }
@@ -57,7 +57,7 @@ public class VehicleIDTimestamp
     }
 
     //@Override
-    public int compareTo(VehicleIDTimestamp pair) {
+    public int compareTo(CabIDTimestamp pair) {
         int compareValue = Integer.parseInt(this.getVehicleID().toString()) -
 			Integer.parseInt(pair.getVehicleID().toString());
         if (compareValue == 0) {
@@ -105,7 +105,7 @@ public class VehicleIDTimestamp
            return false;
         }
 
-        VehicleIDTimestamp that = (VehicleIDTimestamp) o;
+        CabIDTimestamp that = (CabIDTimestamp) o;
         if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) {
            return false;
         }
@@ -126,7 +126,7 @@ public class VehicleIDTimestamp
     @Override
     public String toString() {
     	StringBuilder builder = new StringBuilder();
-    	builder.append("VehicleIDTimestamp{vehicleID=");
+    	builder.append("CabIDTimestamp{vehicleID=");
     	builder.append(vehicleID);
     	builder.append(", ts=");
     	builder.append(timestamp);

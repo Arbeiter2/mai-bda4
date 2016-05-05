@@ -1,10 +1,10 @@
 import org.apache.hadoop.mapreduce.Partitioner;
 
-public class VehicleIDTimestampPartitioner 
-	extends  Partitioner<VehicleIDTimestamp, CabTripSegment> {
+public class CabIDTimestampPartitioner 
+	extends  Partitioner<CabIDTimestamp, CabTripSegment> {
 
 	@Override
-    public int getPartition(VehicleIDTimestamp pair, 
+    public int getPartition(CabIDTimestamp pair, 
                             CabTripSegment segment, 
                             int numberOfPartitions) {
     	// make sure that partitions are non-negative

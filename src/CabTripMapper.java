@@ -10,12 +10,12 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class CabTripMapper extends Mapper<Object, Text, VehicleIDTimestamp, CabTripSegment> {
+public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripSegment> {
 
 
 	private static Logger theLogger = Logger.getLogger(CabTripMapper.class);
 	private Text taxi_id = new Text();
-	private VehicleIDTimestamp vehicleTs = new VehicleIDTimestamp();
+	private CabIDTimestamp vehicleTs = new CabIDTimestamp();
 	protected static DateFormat formatter = null; 
 	
 

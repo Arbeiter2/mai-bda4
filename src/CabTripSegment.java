@@ -92,10 +92,7 @@ public class CabTripSegment implements Writable {
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		//s.append(start_status);
-		//s.append(",");
-		//s.append(end_status);
-		//s.append(",");
+
 		s.append(start_timestamp.toString());
 		s.append(" ");
 		s.append(start_lat.toString());
@@ -134,10 +131,7 @@ public class CabTripSegment implements Writable {
 			return this.toString();
 
 		StringBuilder s = new StringBuilder();
-		//s.append(start_status);
-		//s.append(",");
-		//s.append(end_status);
-		//s.append(",");
+
 		s.append(getFormattedDate(start_timestamp.get(), fmt));
 		s.append(" ");
 		s.append(start_lat.toString());

@@ -164,13 +164,14 @@ public class CabTrips extends Configured implements Tool{
 		job.setJarByClass(CabTrips.class);
 		job.setJobName("CabTrips ["+inputPath+"], R"+Integer.toString(numReducers));
 
-		job.setOutputKeyClass(VehicleIDTimestamp.class);
+		job.setOutputKeyClass(CabIDTimestamp.class);
 		job.setOutputValueClass(CabTripSegment.class);
 		
     	job.setMapperClass(CabTripMapper.class);
     	job.setReducerClass(CabTripReducer.class);		
-    	job.setPartitionerClass(VehicleIDTimestampPartitioner.class);
-    	job.setGroupingComparatorClass(VehicleIDTimestampComp.class);
+    	job.setPartitionerClass(CabIDTimestampPartitioner.class);
+    	job.setGroupingComparatorClass(CabIDTimestampComp.class);
+    	job.setSortComparatorClass(CabIDTimestampSortComp.class);
 
 		boolean status = job.waitForCompletion(true);
 		theLogger.info("run(): status="+status);

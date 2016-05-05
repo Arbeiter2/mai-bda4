@@ -3,9 +3,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -17,7 +15,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class CabTripReducer
-	extends Reducer<VehicleIDTimestamp, CabTripSegment, Text, Text> {
+	extends Reducer<CabIDTimestamp, CabTripSegment, Text, Text> {
 
 	private static Logger theLogger = Logger.getLogger(CabTripReducer.class);
 
@@ -305,7 +303,7 @@ public class CabTripReducer
 	 * 
 	 * <segment> = <start-epoch-time>,<start-latitude>,<start-longitude>,<end-epoch-time>,<end-latitude>,<end-longitude>
 	 */
-	public void reduce(VehicleIDTimestamp key, Iterable<CabTripSegment> values, Context context)
+	public void reduce(CabIDTimestamp key, Iterable<CabTripSegment> values, Context context)
 			throws IOException, InterruptedException {
 
 		taxi = key.getVehicleID();

@@ -18,11 +18,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-
-/**
- * 
- */
-
 /**
  * @author Delano Greenidge
  *
@@ -260,8 +255,6 @@ public class CabTripRevenue extends Configured implements Tool {
 	}
 
 	/**
-	* The main driver for word count map/reduce program.
-	* Invoke this method to submit the map/reduce job.
 	* @throws Exception When there is communication problems with the job tracker.
 	*/
 	public static int submitJob(String[] args) throws Exception {
