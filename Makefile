@@ -20,12 +20,14 @@ bin/CabTripMapper.class: src/CabTripMapper.java
 	$(JAVAC) src/CabTripMapper.java
 bin/CabTripReducer.class: src/CabTripReducer.java
 	$(JAVAC) src/CabTripReducer.java
-bin/VehicleIDTimestamp.class: src/VehicleIDTimestamp.java
-	$(JAVAC) src/VehicleIDTimestamp.java
-bin/VehicleIDTimestampComp.class: src/VehicleIDTimestampComp.java
-	$(JAVAC) src/VehicleIDTimestampComp.java
-bin/VehicleIDTimestampPartitioner.class: src/VehicleIDTimestampPartitioner.java
-	$(JAVAC) src/VehicleIDTimestampPartitioner.java
+bin/CabIDTimestamp.class: src/CabIDTimestamp.java
+	$(JAVAC) src/CabIDTimestamp.java
+bin/CabIDTimestampComp.class: src/CabIDTimestampComp.java
+	$(JAVAC) src/CabIDTimestampComp.java
+bin/CabIDTimestampSortComp.class: src/CabIDTimestampSortComp.java
+	$(JAVAC) src/CabIDTimestampComp.java	
+bin/CabIDTimestampPartitioner.class: src/CabIDTimestampPartitioner.java
+	$(JAVAC) src/CabIDTimestampPartitioner.java
 bin/CabTrips.class: src/CabTrips.java
 	$(JAVAC) src/CabTrips.java
 
@@ -44,13 +46,13 @@ bin/CabTripRevenueRecordPartitioner.class: src/CabTripRevenueRecordPartitioner.j
 bin/CabTripRevenue.class: src/CabTripRevenue.java
 	$(JAVAC) src/CabTripRevenue.java
 
-bin/Exercise2.jar:	bin/CabTripSegment.class bin/VehicleIDTimestamp.class bin/VehicleIDTimestampComp.class \
-	bin/VehicleIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class \
+bin/Exercise2.jar:	bin/CabTripSegment.class bin/CabIDTimestamp.class bin/CabIDTimestampComp.class \
+	bin/CabIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class \
 	bin/CabTripMapper.class  bin/CabTripReducer.class bin/CabTrips.class bin/CabTripRevenueRecord.class  \
 	bin/CabTripRevenueMapper.class bin/CabTripRevenueReducer.class bin/CabTripRevenueRecordComp.class \
-	bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class
+	bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class bin/CabIDTimestampSortComp.class
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabTrips.class CabTrips*.class CabTripRevenue.class CabTripRevenueMapper.class \
-		VehicleIDTimestamp.class VehicleIDTimestampComp.class VehicleIDTimestampPartitioner.class \
+		CabIDTimestamp.class CabIDTimestampComp.class CabIDTimestampPartitioner.class CabIDTimestampSortComp.class \
 		CabTripSegment.class CabTripRevenueReducer.class CabTripRevenueRecord.class CabTripRevenueRecordComp.class \
 		CabTripRevenueRecordPartitioner.class TimezoneMapper.class TimezoneMapper*.class
