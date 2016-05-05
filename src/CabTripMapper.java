@@ -70,6 +70,10 @@ public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripS
 			return;
 		}
 		
+		// reject segments with the same start/end time or same start/end GPS
+		if ((start_lat == end_lat && start_long == end_long) || tokens[1].equals(tokens[5]))
+			return;
+		
 		// create date parser if needed
 		if (formatter == null)
 		{
