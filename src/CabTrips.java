@@ -3,7 +3,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
@@ -70,71 +70,72 @@ public class CabTrips extends Configured implements Tool{
 		CommandLine cmd = null;
 		try {
 			cmd = parser.parse(options, args);
-
-			if (cmd.hasOption("h"))
-				help(options);
-
-			if (cmd.hasOption("i")) {
-				inputPath = cmd.getOptionValue("i");
-			} else {
-				theLogger.log(Level.INFO, "Missing -i option");
-				help(options);
-			}
-
-			// output path
-			if (cmd.hasOption("o")) {
-				outputPath = cmd.getOptionValue("o");
-			} else {
-				theLogger.log(Level.INFO, "Missing -o option");
-				help(options);
-			}
-			
-			// verify paths
-			if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
-			{
-				theLogger.log(Level.INFO, "Invalid input/output path");
-				help(options);				
-			}
-			
-			// numReducers
-			if (cmd.hasOption("r")) {
-				numReducers = Integer.parseInt(cmd.getOptionValue("r"));
-				if (numReducers <= 0)
-				{
-					theLogger.log(Level.INFO, "Invalid -r option");
-					help(options);
-				}
-			}
-
-			// output format
-			if (cmd.hasOption("f")) {
-				String val = cmd.getOptionValue("f");
-				if (val.equals("c"))
-				{
-					summaryOutput = false;
-				}
-				else if (!val.equals("s"))	// bomb for not "c" or "s"
-				{
-					help(options);
-				}		
-			}
-
-			// date format
-			if (cmd.hasOption("d")) {
-				String val = cmd.getOptionValue("d");
-				if (val.equals("h"))
-				{
-					epochTime = false;
-				}
-				else if (!val.equals("e"))	// bomb for not "c" or "s"
-				{
-					help(options);
-				}		
-			}		
-		} catch (ParseException e) {
+		} catch (UnrecognizedOptionException e) {
 			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+			System.out.println(e.getMessage());
 			help(options);
 		}
+		
+		if (cmd.hasOption("h"))
+			help(options);
+
+		if (cmd.hasOption("i")) {
+			inputPath = cmd.getOptionValue("i");
+		} else {
+			theLogger.log(Level.INFO, "Missing -i option");
+			help(options);
+		}
+
+		// output path
+		if (cmd.hasOption("o")) {
+			outputPath = cmd.getOptionValue("o");
+		} else {
+			theLogger.log(Level.INFO, "Missing -o option");
+			help(options);
+		}
+		
+		// verify paths
+		if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
+		{
+			theLogger.log(Level.INFO, "Invalid input/output path");
+			help(options);				
+		}
+		
+		// numReducers
+		if (cmd.hasOption("r")) {
+			numReducers = Integer.parseInt(cmd.getOptionValue("r"));
+			if (numReducers <= 0)
+			{
+				theLogger.log(Level.INFO, "Invalid -r option");
+				help(options);
+			}
+		}
+
+		// output format
+		if (cmd.hasOption("f")) {
+			String val = cmd.getOptionValue("f");
+			if (val.equals("c"))
+			{
+				summaryOutput = false;
+			}
+			else if (!val.equals("s"))	// bomb for not "c" or "s"
+			{
+				help(options);
+			}		
+		}
+
+		// date format
+		if (cmd.hasOption("d")) {
+			String val = cmd.getOptionValue("d");
+			if (val.equals("h"))
+			{
+				epochTime = false;
+			}
+			else if (!val.equals("e"))	// bomb for not "c" or "s"
+			{
+				help(options);
+			}		
+		}		
 	}
 	
 	public int run(String[] args) throws Exception {

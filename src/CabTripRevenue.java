@@ -86,108 +86,108 @@ public class CabTripRevenue extends Configured implements Tool {
 		CommandLine cmd = null;
 		try {
 			cmd = parser.parse(options, args);
-
-			if (cmd.hasOption("h"))
-				help(options);
-
-			if (cmd.hasOption("i")) {
-				inputPath = cmd.getOptionValue("i");
-			} else {
-				theLogger.log(Level.INFO, "Missing -i option");
-				help(options);
-			}
-
-			// output path
-			if (cmd.hasOption("o")) {
-				outputPath = cmd.getOptionValue("o");
-			} else {
-				theLogger.log(Level.INFO, "Missing -o option");
-				help(options);
-			}
-			
-			// verify paths
-			if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
-			{
-				theLogger.log(Level.INFO, "Invalid input/output path");
-				help(options);				
-			}
-			
-			// numReducers
-			if (cmd.hasOption("r")) {
-				numReducers = Integer.parseInt(cmd.getOptionValue("r"));
-				if (numReducers <= 0)
-				{
-					theLogger.log(Level.INFO, "Invalid -r option");
-					help(options);
-				}
-			}
-
-			// charges
-			if (cmd.hasOption("C")) {
-				String[] bits = cmd.getOptionValue("C").split(",");
-				if (bits.length < 2)
-				{
-					theLogger.log(Level.INFO, "Invalid -C option");
-					help(options);
-				}
-				
-				initialCharge = Double.parseDouble(bits[0]);
-				chargePerKm = Double.parseDouble(bits[1]);
-				if (initialCharge < 0d || chargePerKm <= 0d)
-				{
-					theLogger.log(Level.INFO, "Bad trip charge values");
-					help(options);
-				}
-			}
-			else
-			{
-				help(options);
-			}
-			
-			// location
-			if (cmd.hasOption("L")) {
-				String[] bits = cmd.getOptionValue("L").split(",");
-				if (bits.length < 4)
-				{
-					theLogger.log(Level.INFO, "Invalid -L option");
-					help(options);
-				}
-				
-				referenceName = bits[0];
-				referenceLat = Double.parseDouble(bits[1]);
-				referenceLong = Double.parseDouble(bits[2]);
-				referenceRangeKm = Double.parseDouble(bits[3]);
-				
-				if (Math.abs(referenceLat) >= 90d 
-				||  Math.abs(referenceLong) > 180d 
-				||  Math.abs(referenceLong) <= 0d)
-				{
-					theLogger.log(Level.INFO, "Invalid lat/long or range");
-					help(options);
-				}
-			}
-			
-			// use straight-line distance between start and end points
-			if (cmd.hasOption("s"))
-				summaryOutput = true;
-			
-			// date format
-			if (cmd.hasOption("d")) {
-				String val = cmd.getOptionValue("d");
-				if (val.equals("h"))
-				{
-					epochTime = false;
-				}
-				else if (!val.equals("e"))	// bomb for not "c" or "s"
-				{
-					help(options);
-				}		
-			}	
-			
 		} catch (ParseException e) {
 			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+			System.out.println(e.getMessage());
 			help(options);
 		}
+		
+		if (cmd.hasOption("h"))
+			help(options);
+
+		if (cmd.hasOption("i")) {
+			inputPath = cmd.getOptionValue("i");
+		} else {
+			theLogger.log(Level.INFO, "Missing -i option");
+			help(options);
+		}
+
+		// output path
+		if (cmd.hasOption("o")) {
+			outputPath = cmd.getOptionValue("o");
+		} else {
+			theLogger.log(Level.INFO, "Missing -o option");
+			help(options);
+		}
+		
+		// verify paths
+		if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
+		{
+			theLogger.log(Level.INFO, "Invalid input/output path");
+			help(options);				
+		}
+		
+		// numReducers
+		if (cmd.hasOption("r")) {
+			numReducers = Integer.parseInt(cmd.getOptionValue("r"));
+			if (numReducers <= 0)
+			{
+				theLogger.log(Level.INFO, "Invalid -r option");
+				help(options);
+			}
+		}
+
+		// charges
+		if (cmd.hasOption("C")) {
+			String[] bits = cmd.getOptionValue("C").split(",");
+			if (bits.length < 2)
+			{
+				theLogger.log(Level.INFO, "Invalid -C option");
+				help(options);
+			}
+			
+			initialCharge = Double.parseDouble(bits[0]);
+			chargePerKm = Double.parseDouble(bits[1]);
+			if (initialCharge < 0d || chargePerKm <= 0d)
+			{
+				theLogger.log(Level.INFO, "Bad trip charge values");
+				help(options);
+			}
+		}
+		else
+		{
+			help(options);
+		}
+		
+		// location
+		if (cmd.hasOption("L")) {
+			String[] bits = cmd.getOptionValue("L").split(",");
+			if (bits.length < 4)
+			{
+				theLogger.log(Level.INFO, "Invalid -L option");
+				help(options);
+			}
+			
+			referenceName = bits[0];
+			referenceLat = Double.parseDouble(bits[1]);
+			referenceLong = Double.parseDouble(bits[2]);
+			referenceRangeKm = Double.parseDouble(bits[3]);
+			
+			if (Math.abs(referenceLat) >= 90d 
+			||  Math.abs(referenceLong) > 180d 
+			||  Math.abs(referenceLong) <= 0d)
+			{
+				theLogger.log(Level.INFO, "Invalid lat/long or range");
+				help(options);
+			}
+		}
+		
+		// use straight-line distance between start and end points
+		if (cmd.hasOption("s"))
+			summaryOutput = true;
+		
+		// date format
+		if (cmd.hasOption("d")) {
+			String val = cmd.getOptionValue("d");
+			if (val.equals("h"))
+			{
+				epochTime = false;
+			}
+			else if (!val.equals("e"))	// bomb for not "c" or "s"
+			{
+				help(options);
+			}		
+		}	
 	}
 	
 	

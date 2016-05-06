@@ -65,8 +65,8 @@ public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripS
 				Math.abs(end_lat) > 90d || Math.abs(end_long) > 180d)
 				return;
 		} catch (NumberFormatException e) {
-			e.printStackTrace();
-			System.out.println("Bad coordinates(s): "+ value.toString());
+			//e.printStackTrace();
+			//System.out.println("Bad coordinates(s): "+ value.toString());
 			return;
 		}
 		

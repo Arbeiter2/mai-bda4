@@ -125,62 +125,63 @@ public class CabTripDist extends Configured implements Tool{
 		CommandLine cmd = null;
 		try {
 			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+			System.out.println(e.getMessage());
+			help(options);
+		}
+	
+		if (cmd.hasOption("h"))
+			help(options);
 
-			if (cmd.hasOption("h"))
-				help(options);
+		if (cmd.hasOption("i")) {
+			inputPath = cmd.getOptionValue("i");
+		} else {
+			theLogger.log(Level.INFO, "Missing -i option");
+			help(options);
+		}
 
-			if (cmd.hasOption("i")) {
-				inputPath = cmd.getOptionValue("i");
-			} else {
-				theLogger.log(Level.INFO, "Missing -i option");
-				help(options);
-			}
-
-			// output path
-			if (cmd.hasOption("o")) {
-				outputPath = cmd.getOptionValue("o");
-			} else {
-				theLogger.log(Level.INFO, "Missing -o option");
-				help(options);
-			}
-			
-			// verify paths
-			if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
-			{
-				theLogger.log(Level.INFO, "Invalid input/output path");
-				help(options);				
-			}
-			
-			// width
-			if (cmd.hasOption("w")) {
-				bandwidth = Double.parseDouble(cmd.getOptionValue("w"));
-				if (bandwidth <= 0d)
-				{
-					theLogger.log(Level.INFO, "Invalid -w option");
-					help(options);
-				}
-			}
-			else
+		// output path
+		if (cmd.hasOption("o")) {
+			outputPath = cmd.getOptionValue("o");
+		} else {
+			theLogger.log(Level.INFO, "Missing -o option");
+			help(options);
+		}
+		
+		// verify paths
+		if (inputPath.length() == 0 || outputPath.length() == 0 || inputPath.equals(outputPath))
+		{
+			theLogger.log(Level.INFO, "Invalid input/output path");
+			help(options);				
+		}
+		
+		// width
+		if (cmd.hasOption("w")) {
+			bandwidth = Double.parseDouble(cmd.getOptionValue("w"));
+			if (bandwidth <= 0d)
 			{
 				theLogger.log(Level.INFO, "Invalid -w option");
 				help(options);
 			}
-			
-			if (cmd.hasOption("m")) {
-				maxDist = Double.parseDouble(cmd.getOptionValue("m"));
-				if (maxDist <= 0d || (int)(maxDist % bandwidth) != 0)
-				{
-					theLogger.log(Level.INFO, "Invalid -m option");
-					help(options);
-				}
-			}
-			else
+		}
+		else
+		{
+			theLogger.log(Level.INFO, "Invalid -w option");
+			help(options);
+		}
+		
+		if (cmd.hasOption("m")) {
+			maxDist = Double.parseDouble(cmd.getOptionValue("m"));
+			if (maxDist <= 0d || (int)(maxDist % bandwidth) != 0)
 			{
-				theLogger.log(Level.INFO, "Missing -w option");
+				theLogger.log(Level.INFO, "Invalid -m option");
 				help(options);
 			}
-		} catch (ParseException e) {
-			theLogger.log(Level.INFO, "Failed to parse command line properties", e);
+		}
+		else
+		{
+			theLogger.log(Level.INFO, "Missing -w option");
 			help(options);
 		}
 	}
