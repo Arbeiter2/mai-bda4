@@ -27,8 +27,7 @@ public class CabTripSegment implements Writable {
     private DoubleWritable end_lat = new DoubleWritable();     // latitude at segment end
     private DoubleWritable end_long = new DoubleWritable();        // longitude at segment end
     
-    private CabTripSegment next = null;
-	
+
 	public CabTripSegment(String start_status, long start_timestamp, double start_lat, double start_long,
 			String end_status, long end_timestamp, double end_lat, double end_long)
 	{
@@ -62,12 +61,6 @@ public class CabTripSegment implements Writable {
         CabTripSegment seg = new CabTripSegment();
         seg.readFields(in);
         return seg;
-    }
-
-    public void append(CabTripSegment seg)
-    {
-        if (seg != this)
-            next = seg;
     }
 
     
