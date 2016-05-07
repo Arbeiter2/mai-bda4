@@ -8,10 +8,9 @@ public final class GeoDistanceCalc
 	public static final double earthRadius_Nm = 3440.069;
 	public static final double earthRadius_miles = 3958.761;
 	
-	
-	
+
 	/**
-	 * Find the distance between two pairs of coordinatas A and B using haversine formula
+	 * Find the angle between two pairs of coordinates A and B using haversine formula
 	 * 
 	 * @param lat1 - latitude of point A
 	 * @param lon1 - longitude of point A
@@ -20,7 +19,7 @@ public final class GeoDistanceCalc
 	 * @param unit - "M"=miles, "K"=km, "N"=nautical miles
 	 * @return 
 	 */
-	public static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
+	public static double haversineAngle(double lat1, double lon1, double lat2, double lon2) {
 		// do quick check for same start and end point
 		if (lat1 == lat2 && lon2 == lon2)
 			return 0.0;
@@ -34,16 +33,30 @@ public final class GeoDistanceCalc
 		           Math.cos(phi_1) * Math.cos(phi_2) *
 		           Math.pow(Math.sin(d_lambda/2), 2);
 				
-		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+		return 2d * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	}	
+	
+	/**
+	 * Find the distance between two pairs of coordinatas A and B using haversine formula
+	 * 
+	 * @param lat1 - latitude of point A
+	 * @param lon1 - longitude of point A
+	 * @param lat2 - latitude of point B
+	 * @param lon2 - longitude of point B
+	 * @param unit - "M"=miles, "K"=km, "N"=nautical miles
+	 * @return 
+	 */
+	public static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
 		
-		double dist = c * earthRadius_km;
+		double angle = haversineAngle(lat1, lon1, lat2, lon2);
+		double dist = earthRadius_km * angle; 
 
 		if (unit.equals("M"))
-			dist = c * earthRadius_miles;
+			dist = angle * earthRadius_miles;
 		else if (unit.equals("K"))
-			dist = c * earthRadius_km;
+			dist = angle * earthRadius_km;
 		else if (unit.equals("N"))
-			dist = c * earthRadius_Nm;
+			dist = angle * earthRadius_Nm;
 
 		return (dist);
 	}
@@ -58,10 +71,10 @@ public final class GeoDistanceCalc
 	 */
 	public static double bearing(double line_lat1, double line_lon1, double line_lat2, double line_lon2)
 	{
-		double lambda1 = deg2rad(line_lat1);
-		double lambda2 = deg2rad(line_lat2);
-		double phi1 = deg2rad(line_lon1);
-		double phi2 = deg2rad(line_lon2);
+		double lambda1 = deg2rad(line_lon1);
+		double lambda2 = deg2rad(line_lon2);
+		double phi1 = deg2rad(line_lat1);
+		double phi2 = deg2rad(line_lat2);
 
 		double y = Math.sin(lambda2-lambda1) * Math.cos(phi2);
 		double x = Math.cos(phi1)*Math.sin(phi2) -
@@ -89,20 +102,13 @@ public final class GeoDistanceCalc
 		else if (unit == "N")
 			R = earthRadius_Nm;
 
-		// find c, angular distance between the two points on the line
-		double d_phi = deg2rad(line_lat1) - deg2rad(line_lat2);
-		double d_lambda = deg2rad(line_lon1) - deg2rad(line_lon2);
-
-		double a = Math.sin(d_phi/2) * Math.sin(d_phi/2) +
-		        Math.cos(deg2rad(line_lat1)) * Math.cos(deg2rad(line_lat2)) *
-		        Math.sin(d_lambda/2) * Math.sin(d_lambda/2);
-		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+		double c = haversineAngle(line_lat1, line_lon1, point_lat, point_long);
 		
 		double theta13 = bearing(line_lat1, line_lon1, point_lat, point_long);
 		double theta12 = bearing(line_lat1, line_lon1, line_lat2, line_lon2);
 		
 		
-		double dXt = Math.asin(Math.sin(c/R)*Math.sin(theta13-theta12)) * R;
+		double dXt = Math.asin(Math.sin(c)*Math.sin(theta13-theta12)) * R;
 
 		return (dXt);
 	}	

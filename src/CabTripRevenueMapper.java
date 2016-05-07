@@ -222,9 +222,18 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 					throw new IOException("Gap between segments > 10 minutes: "+Double.toString(tdiff/60));
 				
 				// check whether this inter-segment journey passes within range of the reference
-				if (useReference && GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
-						reference_lat, reference_long, unit) <= reference_range)
-					in_reference_range = true;
+				if (useReference)
+				{
+					double ref_dist = GeoDistanceCalc.distanceFromLine(last_lat, last_long, start_lat, start_long, 
+						reference_lat, reference_long, unit);
+					if (Math.abs(ref_dist) <= reference_range)
+					{
+						in_reference_range = true;
+						//theLogger.info("{ lat: "+Double.toString(last_lat)+", lng: "+Double.toString(last_long)+"}, \n"+
+						//		"{ lat: "+Double.toString(start_lat)+", lng: "+Double.toString(start_long)+" },\n"+
+						//		"ref_dist: "+Double.toString(ref_dist));
+					}
+				}
 			}
 			trip_length += inter_seg_dist;
 			seg_dist = GeoDistanceCalc.distance(start_lat, start_long, end_lat, end_long, unit);
@@ -236,9 +245,18 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 			trip_length += seg_dist;
 			
 			// check whether this segment journey passes within range of the reference
-			if (useReference && GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
-					reference_lat, reference_long, unit) <= reference_range)
-				in_reference_range = true;			
+			if (useReference)
+			{ 
+				double ref_dist = GeoDistanceCalc.distanceFromLine(start_lat, start_long, end_lat, end_long, 
+					reference_lat, reference_long, unit);
+				if (ref_dist <= reference_range)
+				{
+					in_reference_range = true;
+					//theLogger.info("{ lat: "+Double.toString(start_lat)+", lng: "+Double.toString(start_long)+"}, \n"+
+					//		"{ lat: "+Double.toString(end_lat)+", lng: "+Double.toString(end_long)+" },\n"+
+					//		"ref_dist: "+Double.toString(ref_dist));
+				}
+			}
 
 			last_ts = end_ts;
 			last_lat = end_lat;
