@@ -51,10 +51,10 @@ bin/CabTripRevenue.class: src/CabTripRevenue.java
 	$(JAVAC) src/CabTripRevenue.java
 
 bin/Exercise2.jar:	bin/CabTripSegment.class bin/CabIDTimestamp.class bin/CabIDTimestampComp.class \
-	bin/CabIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class bin/CabIDTimestampSortComp.class\
-	bin/CabTripMapper.class bin/CabIDCombiner.class bin/CabTripReducer.class bin/CabTrips.class bin/CabTripRevenueRecord.class  \
-	bin/CabTripRevenueMapper.class bin/CabTripRevenueReducer.class bin/CabTripRevenueRecordComp.class \
-	bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class bin/CabIDCombinerGroupComp.class
+	bin/CabIDTimestampPartitioner.class bin/GeoDistanceCalc.class bin/TimezoneMapper.class bin/CabIDTimestampSortComp.class \
+	bin/CabTripMapper.class bin/CabIDCombinerGroupComp.class bin/CabIDCombiner.class bin/CabTripReducer.class \
+	bin/CabTrips.class bin/CabTripRevenueRecord.class  bin/CabTripRevenueMapper.class bin/CabTripRevenueReducer.class \
+	bin/CabTripRevenueRecordComp.class bin/CabTripRevenueRecordPartitioner.class  bin/CabTripRevenue.class 
 	cd bin && jar cf Exercise2.jar GeoDistanceCalc.class GeoDistanceCalc*.class CabTripMapper.class CabTripMapper*.class \
 		CabTripReducer.class CabTripReducer*.class CabIDCombinerGroupComp.class CabTrips.class CabTrips*.class CabTripRevenue.class CabTripRevenueMapper.class \
 		CabIDTimestamp.class CabIDTimestampComp.class CabIDTimestampPartitioner.class CabIDTimestampSortComp.class \
