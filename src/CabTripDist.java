@@ -30,7 +30,7 @@ public class CabTripDist extends Configured implements Tool{
 	private String outputPath = null;
 	private double maxDist = 0d;
 	private double bandwidth = 0d;
-	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	private boolean summaryOutput = false;
 	
 	/**
 	 * creates an array of frequency distribution upper limits.
@@ -102,6 +102,7 @@ public class CabTripDist extends Configured implements Tool{
 		options.addOption("o", "output", true, "output path");
 		options.addOption("w", "width", true, "width of band e.g. 1.0");
 		options.addOption("m", "maxdist", true, "lower bound of last band, i.e. 10 -> last band is for 10+;\nmust be integer multiple of width");
+		options.addOption("s", "summary", false, "use straight line distance for distance calc");
 
 		return options;
 	}
@@ -175,6 +176,13 @@ public class CabTripDist extends Configured implements Tool{
 			help(options);
 		}
 		
+		
+		// use start and end only
+		if (cmd.hasOption("s")) {
+			summaryOutput = true;
+		}	
+		
+		// max distance
 		if (cmd.hasOption("m")) {
 			maxDist = Double.parseDouble(cmd.getOptionValue("m"));
 			if (maxDist <= 0d || (int)(maxDist % bandwidth) != 0)
@@ -199,11 +207,13 @@ public class CabTripDist extends Configured implements Tool{
 		private IntWritable Band = new IntWritable();
 
 		// K=km, N=nautical miles, M=statute mile
-		private String unit;
+		private String unit = "K";
 		private int numBands;
 		private double maxDist;
 		private double bandwidth;
 		private double sanityLimit;
+		private boolean summaryOutput;
+		
 		private double distBandLimits[];
 
 		@Override
@@ -214,6 +224,8 @@ public class CabTripDist extends Configured implements Tool{
 			bandwidth = conf.getDouble("bandwidth", 1d);
 			numBands = (int)(maxDist/bandwidth) + 1;
 			sanityLimit = conf.getDouble("sanityLimit", 200d);
+			summaryOutput = conf.getBoolean("summaryOutput", false);
+			
 
 			distBandLimits = setBandLimits(numBands, maxDist, bandwidth);
 
@@ -247,7 +259,7 @@ public class CabTripDist extends Configured implements Tool{
 			double dist = -1d;
 			try
 			{
-				dist = CabTripSegment.getTripLength(segments, false, false, 0d, 0d, 0d, "K");
+				dist = CabTripSegment.getTripLength(segments, summaryOutput, false, 0d, 0d, 0d, unit);
 				if (dist == -1d)
 					return;
 			}
@@ -263,49 +275,6 @@ public class CabTripDist extends Configured implements Tool{
 				context.write(Band, one);
 			}			
 		}
-		
-		/* (non-Javadoc)
-		 * @see org.apache.hadoop.mapreduce.Mapper#map(KEYIN, VALUEIN, org.apache.hadoop.mapreduce.Mapper.Context)
-		 
-		@Override
-		public void map(Object key, Text value, Context context)
-			throws IOException, InterruptedException {
-			// # <taxi-id> <start date> <start pos (lat)> <start pos (long)> ...
-			// # <end date> <end pos (lat)> <end pos (long)>
-			String[] tokens = value.toString().trim().split(" ");
-			double start_ts = Double.parseDouble(tokens[1]);
-			double lat1 = Double.parseDouble(tokens[2]);
-			double long1 = Double.parseDouble(tokens[3]);
-			double end_ts = Double.parseDouble(tokens[4]);
-			double lat2 = Double.parseDouble(tokens[5]);
-			double long2 = Double.parseDouble(tokens[6]);
-
-			double dist = GeoDistanceCalc.distance(lat1, long1, lat2,
-				long2, unit);
-			
-			// ignore insanely short trips (less than 10m)
-			if (dist < 0.01d)
-				return;
-			
-			// check whether journey is plausible
-			double duration = end_ts - start_ts;
-			
-			// ignore impossible timestamps
-			if (duration <= 0d)
-				return;
-			
-			// reject avg speed > 160 kmh
-			double speed = 3600d * dist/duration;
-			if (speed > 160d)
-				return;
-						
-			// find relevant band identifier
-			int bandNum = getBand(dist, sanityLimit, distBandLimits);
-			if (bandNum != -1) {
-				Band.set(bandNum);
-				context.write(Band, one);
-			}
-		}*/
 	}
 	
 	
@@ -382,6 +351,7 @@ public class CabTripDist extends Configured implements Tool{
 
 		conf.setDouble("maxDist", maxDist);
 		conf.setDouble("bandwidth", bandwidth);
+		conf.setBoolean("summmaryOutput", summaryOutput);
 
 		Job job = Job.getInstance(conf, "Cab trip length distribution");
 
