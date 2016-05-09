@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -27,6 +29,7 @@ public class CabTripDist extends Configured implements Tool{
 	private String outputPath = null;
 	private double maxDist = 0d;
 	private double bandwidth = 0d;
+	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	
 	/**
 	 * creates an array of frequency distribution upper limits.
@@ -228,10 +231,29 @@ public class CabTripDist extends Configured implements Tool{
 				theLogger.error( e.getMessage(), e );
 			}
 		}
-
+		
+		
+		@Override
+		public void map(Object key, Text value, Context context)
+			throws IOException, InterruptedException {
+			
+			// the CabTripRevenueMapper parse handles both human and epoch date formats
+			CabTripSegment[] segments = CabTripRevenueMapper.parse( value.toString());
+			if (segments == null)
+				return;
+			
+			// checks for invalid speeds
+			double dist = CabTripRevenueMapper.getTripLength(segments);
+			int bandNum = getBand(dist, sanityLimit, distBandLimits);
+			if (bandNum != -1) {
+				Band.set(bandNum);
+				context.write(Band, one);
+			}			
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.apache.hadoop.mapreduce.Mapper#map(KEYIN, VALUEIN, org.apache.hadoop.mapreduce.Mapper.Context)
-		 */
+		 
 		@Override
 		public void map(Object key, Text value, Context context)
 			throws IOException, InterruptedException {
@@ -270,7 +292,7 @@ public class CabTripDist extends Configured implements Tool{
 				Band.set(bandNum);
 				context.write(Band, one);
 			}
-		}
+		}*/
 	}
 	
 	

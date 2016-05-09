@@ -67,6 +67,14 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 		summaryOutput = conf.getBoolean("CabTripRevenue.summaryOutput", false);
 	}
 	
+	public static boolean isSummaryOutput() {
+		return summaryOutput;
+	}
+
+	public static void setSummaryOutput(boolean summaryOutput) {
+		CabTripRevenueMapper.summaryOutput = summaryOutput;
+	}
+
 	/**
 	 * turn a semicolon separated list of segment data (without status codes) into 
 	 * an array of CabTripSegments
@@ -74,7 +82,7 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 	 * @param segStr
 	 * @return
 	 */
-	private static CabTripSegment[] parse(String segStr)
+	public static CabTripSegment[] parse(String segStr)
 	{
 		CabTripSegment[] retVal = null;
 		ArrayList<CabTripSegment> segList = new ArrayList<CabTripSegment>();
@@ -177,7 +185,7 @@ public class CabTripRevenueMapper extends Mapper<Text, Text, CabTripRevenueRecor
 	 * 		-1 if input malformed, or trip does not pass within range of reference
 	 * 
 	 */
-	protected static double getTripLength(CabTripSegment[] segments) throws IOException
+	public static double getTripLength(CabTripSegment[] segments) throws IOException
 	{
 		double trip_length = 0d;
 		double inter_seg_dist = 0d;
