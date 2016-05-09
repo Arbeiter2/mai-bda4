@@ -20,7 +20,7 @@ import java.util.Date;
  */
 public class CabTripSegment implements Writable {
 
-	private static Logger theLogger = Logger.getLogger(CabTripRevenueMapper.class);
+	private static Logger theLogger = Logger.getLogger(CabTripSegment.class);
 	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	private static Text tzStr = null;	// time zone string
 

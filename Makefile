@@ -9,13 +9,13 @@ clean:
 
 bin/GeoDistanceCalc.class: src/GeoDistanceCalc.java
 	$(JAVAC) src/GeoDistanceCalc.java
-bin/CabTripDist.class: src/CabTripDist.java
-	$(JAVAC) src/CabTripDist.java
-bin/Exercise1.jar:	bin/GeoDistanceCalc.class bin/CabTripDist.class
-	cd bin && jar cf Exercise1.jar CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
-
 bin/CabTripSegment.class: src/CabTripSegment.java
 	$(JAVAC) src/CabTripSegment.java
+bin/CabTripDist.class: src/CabTripDist.java
+	$(JAVAC) src/CabTripDist.java
+bin/Exercise1.jar:	bin/GeoDistanceCalc.class bin/CabTripSegment.class bin/CabTripDist.class
+	cd bin && jar cf Exercise1.jar CabTripSegment.class CabTripDist.class CabTripDist*.class GeoDistanceCalc.class
+
 bin/CabTripMapper.class: src/CabTripMapper.java
 	$(JAVAC) src/CabTripMapper.java
 bin/CabTripReducer.class: src/CabTripReducer.java
