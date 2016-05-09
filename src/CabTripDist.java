@@ -238,12 +238,15 @@ public class CabTripDist extends Configured implements Tool{
 			throws IOException, InterruptedException {
 			
 			// the CabTripRevenueMapper parse handles both human and epoch date formats
-			CabTripSegment[] segments = CabTripRevenueMapper.parse( value.toString());
+			CabTripSegment[] segments = CabTripSegment.parse(value.toString());
 			if (segments == null)
 				return;
 			
 			// checks for invalid speeds
-			double dist = CabTripRevenueMapper.getTripLength(segments);
+			double dist = CabTripSegment.getTripLength(segments, false, false, 0d, 0d, 0d, "K");
+			if (dist == -1d)
+				return;
+			
 			int bandNum = getBand(dist, sanityLimit, distBandLimits);
 			if (bandNum != -1) {
 				Band.set(bandNum);
