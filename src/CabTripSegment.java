@@ -164,8 +164,9 @@ public class CabTripSegment implements Writable {
 			
 						
 			// we don't need to save the status codes as these are all in sorted time order
-			segList.add(new CabTripSegment("", start_ts, start_lat, start_long,
-					"",  end_ts, end_lat, end_long));
+			CabTripSegment sg= new CabTripSegment("", start_ts, start_lat, start_long,
+			                    "",  end_ts, end_lat, end_long);
+			segList.add(sg);
 		}
 		retVal = segList.toArray(new CabTripSegment[0]);
 		

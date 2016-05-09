@@ -10,6 +10,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -238,14 +239,23 @@ public class CabTripDist extends Configured implements Tool{
 			throws IOException, InterruptedException {
 			
 			// the CabTripRevenueMapper parse handles both human and epoch date formats
-			CabTripSegment[] segments = CabTripSegment.parse(value.toString());
+			CabTripSegment[] segments = CabTripSegment.parse(value.toString().split(" ", 2)[1]);
 			if (segments == null)
 				return;
 			
 			// checks for invalid speeds
-			double dist = CabTripSegment.getTripLength(segments, false, false, 0d, 0d, 0d, "K");
-			if (dist == -1d)
+			double dist = -1d;
+			try
+			{
+				dist = CabTripSegment.getTripLength(segments, false, false, 0d, 0d, 0d, "K");
+				if (dist == -1d)
+					return;
+			}
+			catch (IOException e)
+			{
 				return;
+			}
+
 			
 			int bandNum = getBand(dist, sanityLimit, distBandLimits);
 			if (bandNum != -1) {
