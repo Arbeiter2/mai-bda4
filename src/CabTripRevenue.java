@@ -73,7 +73,7 @@ public class CabTripRevenue extends Configured implements Tool {
 		// This prints out some help
 		HelpFormatter formater = new HelpFormatter();
 		
-		formater.printHelp("CabTripCost", options);
+		formater.printHelp("CabTripRevenue", options);
 		System.exit(0);
 	}
 	 
