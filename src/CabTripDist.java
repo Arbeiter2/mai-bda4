@@ -225,7 +225,6 @@ public class CabTripDist extends Configured implements Tool{
 			numBands = (int)(maxDist/bandwidth) + 1;
 			sanityLimit = conf.getDouble("sanityLimit", 200d);
 			summaryOutput = conf.getBoolean("summaryOutput", false);
-			
 
 			distBandLimits = setBandLimits(numBands, maxDist, bandwidth);
 
@@ -351,7 +350,7 @@ public class CabTripDist extends Configured implements Tool{
 
 		conf.setDouble("maxDist", maxDist);
 		conf.setDouble("bandwidth", bandwidth);
-		conf.setBoolean("summmaryOutput", summaryOutput);
+		conf.setBoolean("summaryOutput", summaryOutput);
 
 		Job job = Job.getInstance(conf, "Cab trip length distribution");
 
