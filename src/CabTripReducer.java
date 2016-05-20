@@ -383,15 +383,20 @@ public class CabTripReducer
 				2008-06-09T13:51:02-0700 37.77548 -122.42626 2008-06-09T13:51:58-0700 37.77509 -122.42952
 				second sample represents a new trip
 				*/
-				long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
-				if (gap >= 300L)
+				if (last != null)
 				{
-					// output the trip we were last working on
-					emit(context);
-					
-					// then start a new one
-					startTrip(taxi);
-				}				
+					long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
+					if (gap >= 300L)
+					{
+						// output the trip we were last working on
+						emit(context);
+
+						//System.out.println(taxi.toString() + ": new trip start "+seg);
+						
+						// then start a new one
+						startTrip(taxi);
+					}				
+				}
 				addSegment(taxi, seg);
 				newTrip = false;
 			}
