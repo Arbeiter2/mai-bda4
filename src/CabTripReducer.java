@@ -369,18 +369,29 @@ public class CabTripReducer
 						
 						// then start a new one
 						startTrip(taxi);
-						addSegment(taxi, seg);						
 					}
-					else
-					{
-						// continue existing trip
-						addSegment(taxi, seg);
-					}
+					addSegment(taxi, seg);
 				}
 			}
 			// meter running - on a trip
 			else if (start_status.equals("M") && end_status.equals("M"))
 			{
+				/*
+				meter stop/start may be missing, in which case gap between last segment end
+				and start of the next will exceed ~5 minutes
+				2008-06-09T13:38:37-0700 37.78856 -122.40897 2008-06-09T13:39:39-0700 37.78869 -122.40893
+				2008-06-09T13:51:02-0700 37.77548 -122.42626 2008-06-09T13:51:58-0700 37.77509 -122.42952
+				second sample represents a new trip
+				*/
+				long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
+				if (gap >= 300L)
+				{
+					// output the trip we were last working on
+					emit(context);
+					
+					// then start a new one
+					startTrip(taxi);
+				}				
 				addSegment(taxi, seg);
 				newTrip = false;
 			}
