@@ -348,7 +348,7 @@ public class CabTripReducer
 				// 2811,'2010-02-27 23:58:57',37.75175,-122.39467,'E','2010-03-02 17:11:06',37.7832,-122.40298,'M'
 				// 2811,'2010-03-02 17:11:06',37.7832,-122.40298,'M','2010-03-02 17:12:08',37.78255,-122.4019,'M' 
 				long seg_gap = seg.getEnd_timestamp().get() - seg.getStart_timestamp().get();
-				if (seg_gap < 0L || seg_gap > 180L)
+				if (seg_gap < 0L || seg_gap > 600L)
 					continue;
 
 				// newly started
@@ -357,18 +357,28 @@ public class CabTripReducer
 					// then start a new one
 					addSegment(taxi, seg);
 					newTrip = false;
+					last = seg;
 				}
 				else
 				{
-					// if meter starts within record, and more than 10 mins passed, new trip
-					long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
-					if (gap >= 600L)
+					if (last != null)
 					{
-						// output the trip we were last working on
-						emit(context);
-						
-						// then start a new one
-						startTrip(taxi);
+						// if meter starts within record, and more than 10 mins passed, new trip
+						long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
+						if (gap >= 600L)
+						{
+							// output the trip we were last working on
+							emit(context);
+							
+							// then start a new one
+							startTrip(taxi);
+							newTrip = true;
+							last = null;
+						}
+					}
+					else
+					{
+						last = seg;
 					}
 					addSegment(taxi, seg);
 				}
@@ -383,22 +393,25 @@ public class CabTripReducer
 				2008-06-09T13:51:02-0700 37.77548 -122.42626 2008-06-09T13:51:58-0700 37.77509 -122.42952
 				second sample represents a new trip
 				*/
-				if (last != null)
+				if (last != null
+					&& last.getEnd_timestamp().get() - seg.getStart_timestamp().get() >= 300L)
 				{
-					long gap = last.getEnd_timestamp().get() - seg.getStart_timestamp().get();
-					if (gap >= 300L)
-					{
-						// output the trip we were last working on
-						emit(context);
+					// output the trip we were last working on
+					emit(context);
 
-						//System.out.println(taxi.toString() + ": new trip start "+seg);
-						
-						// then start a new one
-						startTrip(taxi);
-					}				
+					//System.out.println("Mid trip start: "+taxi.toString() + " ["+last+"]["+seg+"]");
+
+					// then start a new one
+					startTrip(taxi);
+					last = null;
+					newTrip = true;
+				}				
+				else
+				{
+					last = seg;
+					newTrip = false;
 				}
 				addSegment(taxi, seg);
-				newTrip = false;
 			}
 			// meter stopped during record - end of trip
 			else if ( (start_status.equals("M") && end_status.equals("E")) 
@@ -411,8 +424,8 @@ public class CabTripReducer
 				emit(context);
 				endTrip(taxi);
 				newTrip = true;
+				last = null;
 			}
-			last = seg;
 		}
 	}	
 }
