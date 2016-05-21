@@ -270,7 +270,12 @@ public class CabTripSegment implements Writable {
 			last_lat = end_lat;
 			last_long = end_long;
 		}
-		//System.out.println(trip_id.toString()+": i="+Double.toString(inter_seg_dist)+"; s="+Double.toString(seg_dist)+"; d="+Double.toString(trip_length));
+		
+		
+		// if trip lasts more than 6 hours, bin it
+		if (segments[segments.length-1].getEnd_timestamp().get() -
+				segments[0].getStart_timestamp().get() >= 21600L)
+			return -1d;
 	
 
 		// if we are doing summary output, just use the start and end points of the segments
