@@ -36,6 +36,8 @@ public class CabTripReducer
 	//
 	protected static boolean epochTime = true;
 	
+	protected static long maxTripLength = -1;
+	
 	
 	
 	/**
@@ -56,6 +58,7 @@ public class CabTripReducer
 
 		summaryOutput = conf.getBoolean("summaryOutput", true);
 		epochTime = conf.getBoolean("epochTime", true);
+		maxTripLength = conf.getLong("maxTripLength", -1);
 	}
 	
 	/**
@@ -211,9 +214,10 @@ public class CabTripReducer
 		if (segList == null)
 			return;
 		
-		// reject trips exceeding 6 hours
-		if (segList[segList.length-1].getEnd_timestamp().get() 
-				- segList[0].getStart_timestamp().get() > 21600L)
+		// reject trips exceeding maxTripLength
+		if (maxTripLength > 0
+			&& segList[segList.length-1].getEnd_timestamp().get() 
+				- segList[0].getStart_timestamp().get() > maxTripLength)
 			return;
 	
 		// create date parser if needed

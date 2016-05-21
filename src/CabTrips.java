@@ -38,6 +38,8 @@ public class CabTrips extends Configured implements Tool{
 
 	private int numReducers = 1;
 	
+	private long maxTripLength = -1L;
+	
 	private static Options buildOptions()
 	{
 		Options options = new Options();
@@ -48,7 +50,8 @@ public class CabTrips extends Configured implements Tool{
 		options.addOption("i", "input", true, "input path");
 		options.addOption("o", "output", true, "output path");
 		options.addOption("r", "reducers", true, "number of reducers");
-
+		options.addOption("m", "max-trip-length", true, "maximum trip length HH:MM");
+		
 		return options;
 	}
 		
@@ -136,6 +139,20 @@ public class CabTrips extends Configured implements Tool{
 				help(options);
 			}		
 		}		
+
+		// maxTripLength
+		if (cmd.hasOption("m")) {
+			String bits[] = cmd.getOptionValue("m").split(":");
+			int a = Integer.parseInt(bits[0]);
+			int b = Integer.parseInt(bits[1]);
+			
+			if (a < 0 || b < 0 || b >= 60)
+			{
+				theLogger.log(Level.INFO, "Invalid -m option");
+				help(options);
+			}
+			maxTripLength = a * 3600 + b;
+		}
 	}
 	
 	public int run(String[] args) throws Exception {
@@ -151,6 +168,7 @@ public class CabTrips extends Configured implements Tool{
         
         conf.setBoolean("summaryOutput", summaryOutput);
 		conf.setBoolean("epochTime", epochTime);
+		conf.setLong("maxTripLength", maxTripLength);
 
  		Job job = Job.getInstance(conf, "Cab trip builder");
 	    FileInputFormat.addInputPath(job, new Path(inputPath));
