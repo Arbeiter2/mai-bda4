@@ -208,74 +208,75 @@ public class CabTripReducer
 	{
 		// build string out of array of segments
 		CabTripSegment[] segList = getSegments(taxi);
-		if (segList != null)
+		if (segList == null)
+			return;
+		
+		// reject trips exceeding 6 hours
+		if (segList[segList.length-1].getEnd_timestamp().get() 
+				- segList[0].getStart_timestamp().get() > 21600L)
+			return;
+	
+		// create date parser if needed
+		if (!epochTime && formatter == null)
 		{
-			// create date parser if needed
-			if (!epochTime && formatter == null)
-			{
-				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-				
-				// get timezone from lat/long
-				String tz = TimezoneMapper.latLngToTimezoneString(segList[0].getStart_lat().get(), 
-						segList[0].getStart_long().get());
-				
-				theLogger.info("CabTripReducer: Using timezone ["+tz+"]");
-
-				// create timezone and assign to formatter
-				TimeZone timeZone = TimeZone.getTimeZone(tz);
-				formatter.setTimeZone(timeZone);
-			}
-
-			StringBuilder s = new StringBuilder();
-			// generate giant ugly string
-			// all segments are output, separated by semicolons
-			if (!summaryOutput)
-			{
-				for (int i=0; i < segList.length-1; i++)
-				{
-					s.append(segList[i].toString(formatter));
-					s.append(";");
-				}
-				s.append(segList[segList.length-1].toString(formatter));
-			}
-			else
-			{
-				// output only details of first and last waypoint
-				// 9 1267402225.0 37.79076 -122.40255 1267402400.0 37.78538 -122.40024
-				if (!epochTime)
-					s.append(CabTripSegment.getFormattedDate(segList[0].getStart_timestamp().get(), formatter));
-				else
-					s.append(segList[0].getStart_timestamp());
-				s.append(" ");
-				s.append(segList[0].getStart_lat());
-				s.append(" ");
-				s.append(segList[0].getStart_long());
-				s.append(" ");
-
-				if (!epochTime)
-					s.append(CabTripSegment.getFormattedDate(segList[segList.length-1].getStart_timestamp().get(), formatter));
-				else
-					s.append(segList[segList.length-1].getEnd_timestamp());
-				s.append(" ");
-				s.append(segList[segList.length-1].getEnd_lat());
-				s.append(" ");
-				s.append(segList[segList.length-1].getEnd_long());
-			}
+			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 			
-			// get output key as (taxi_id,taxi_trip_number)
-			//trip_id.set(getCurrentTripID(taxi));
-			trip_id.set(taxi);
-			segmentString.set(s.toString());
-
-			//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
+			// get timezone from lat/long
+			String tz = TimezoneMapper.latLngToTimezoneString(segList[0].getStart_lat().get(), 
+					segList[0].getStart_long().get());
 			
-			// emit 
-			context.write(trip_id, segmentString);
+			theLogger.info("CabTripReducer: Using timezone ["+tz+"]");
+
+			// create timezone and assign to formatter
+			TimeZone timeZone = TimeZone.getTimeZone(tz);
+			formatter.setTimeZone(timeZone);
+		}
+
+		StringBuilder s = new StringBuilder();
+		// generate giant ugly string
+		// all segments are output, separated by semicolons
+		if (!summaryOutput)
+		{
+			for (int i=0; i < segList.length-1; i++)
+			{
+				s.append(segList[i].toString(formatter));
+				s.append(";");
+			}
+			s.append(segList[segList.length-1].toString(formatter));
 		}
 		else
 		{
-			//System.out.println("Empty segList for "+taxi.toString());
+			// output only details of first and last waypoint
+			// 9 1267402225.0 37.79076 -122.40255 1267402400.0 37.78538 -122.40024
+			if (!epochTime)
+				s.append(CabTripSegment.getFormattedDate(segList[0].getStart_timestamp().get(), formatter));
+			else
+				s.append(segList[0].getStart_timestamp());
+			s.append(" ");
+			s.append(segList[0].getStart_lat());
+			s.append(" ");
+			s.append(segList[0].getStart_long());
+			s.append(" ");
+
+			if (!epochTime)
+				s.append(CabTripSegment.getFormattedDate(segList[segList.length-1].getStart_timestamp().get(), formatter));
+			else
+				s.append(segList[segList.length-1].getEnd_timestamp());
+			s.append(" ");
+			s.append(segList[segList.length-1].getEnd_lat());
+			s.append(" ");
+			s.append(segList[segList.length-1].getEnd_long());
 		}
+		
+		// get output key as (taxi_id,taxi_trip_number)
+		//trip_id.set(getCurrentTripID(taxi));
+		trip_id.set(taxi);
+		segmentString.set(s.toString());
+
+		//theLogger.info("R:emit("+trip_id.toString()+")["+Integer.toString(segList.length)+"]");
+		
+		// emit 
+		context.write(trip_id, segmentString);
 		
 	}
 	
@@ -395,7 +396,7 @@ public class CabTripReducer
 				second sample represents a new trip
 				*/
 				if (last != null
-					&& last.getEnd_timestamp().get() - seg.getStart_timestamp().get() >= 300L)
+					&& seg.getStart_timestamp().get() - last.getEnd_timestamp().get() >= 300L)
 				{
 					// output the trip we were last working on
 					emit(context);
