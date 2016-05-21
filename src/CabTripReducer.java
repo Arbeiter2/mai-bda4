@@ -398,9 +398,15 @@ public class CabTripReducer
 				2008-06-09T13:38:37-0700 37.78856 -122.40897 2008-06-09T13:39:39-0700 37.78869 -122.40893
 				2008-06-09T13:51:02-0700 37.77548 -122.42626 2008-06-09T13:51:58-0700 37.77509 -122.42952
 				second sample represents a new trip
+				
+				when gap between segment start and end > 1 hour, start new trip
+				114,'2010-03-16 15:20:38',37.66164,-122.4024,'M','2010-03-16 15:21:38',37.67553,-122.38883,'M'
+				114,'2010-03-16 15:21:38',37.67553,-122.38883,'M','2010-03-17 22:57:12',37.78033,-122.42369,'M'
+				second segment is more than 24 hours long, so we start a new trip
 				*/
-				if (last != null
+				if ((last != null
 					&& seg.getStart_timestamp().get() - last.getEnd_timestamp().get() >= 300L)
+				|| (seg.getEnd_timestamp().get() - seg.getStart_timestamp().get() > 3600L))
 				{
 					// output the trip we were last working on
 					emit(context);
