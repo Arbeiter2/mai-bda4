@@ -361,7 +361,7 @@ public class CabTripReducer
 				{
 					// then start a new one
 					startTrip(taxi);
-					addSegment(taxi, seg);
+					//addSegment(taxi, seg);
 					newTrip = false;
 					last = seg;
 				}
@@ -386,7 +386,7 @@ public class CabTripReducer
 					{
 						last = seg;
 					}
-					addSegment(taxi, seg);
+					//addSegment(taxi, seg);
 				}
 			}
 			// meter running - on a trip
@@ -424,7 +424,7 @@ public class CabTripReducer
 					// OR in the middle of a trip and suddenly meter is off
 					||(!newTrip && start_status.equals("E") && end_status.equals("E")))
 			{
-				addSegment(taxi, seg);
+				//addSegment(taxi, seg);
 				
 				// emit current trip and close it
 				emit(context);
