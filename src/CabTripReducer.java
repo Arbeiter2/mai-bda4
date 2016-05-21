@@ -355,6 +355,7 @@ public class CabTripReducer
 				if (newTrip)
 				{
 					// then start a new one
+					startTrip(taxi);
 					addSegment(taxi, seg);
 					newTrip = false;
 					last = seg;
