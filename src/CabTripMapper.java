@@ -161,6 +161,7 @@ public class CabTripMapper
 		double lng[] = ArrayUtils.toPrimitive(longitudeSamples
 				.toArray(new Double[longitudeSamples.size()]));
 
+		// write out file of statistics
 		Configuration conf = context.getConfiguration();
 		conf.addResource(new Path("/HADOOP_HOME/conf/core-site.xml"));
 		conf.addResource(new Path("/HADOOP_HOME/conf/hdfs-site.xml"));

@@ -45,6 +45,8 @@ public class CabTripReducer
 	
 	protected static long maxTripLength = -1;
 	
+	private final static double NUM_DEVIATIONS = 20d;
+	
 	// used for rejecting trips
 	protected double minLatitude = -1;
 	protected double maxLatitude = -1;
@@ -59,29 +61,6 @@ public class CabTripReducer
 	protected HashMap<Text, Boolean> inTrip = new HashMap<Text, Boolean>();
 	protected HashMap<Text, ArrayList<CabTripSegment>> segments = new HashMap<Text, ArrayList<CabTripSegment>>();
 
-	/**
-	 * process map of key-value pairs, write to new map
-	 * 
-	 * source key names are of format "a.b.c.<index>"
-	 * destination key is <index>
-	 * 
-	 * @param source
-	 * @param destination
-	 */
-	private void getPropertyValues(Map<String, String> source, Map<String, Double> destination)
-	{
-		for (Entry<String, String> entry : source.entrySet()) {
-		    String key = entry.getKey();
-		    Double value = Double.parseDouble(entry.getValue());
-
-			theLogger.info("key = "+key+", value = "+value);
-		    
-		    String[] bits = key.split(".");
-		    String mapperID = bits[bits.length-1];
-		    destination.put(mapperID, value);
-		}
-	}
-	
 	/**
 	 * calculate pooled variance
 	 * 
@@ -173,10 +152,10 @@ public class CabTripReducer
 		
 		if (sampleSizes.size() > 0)
 		{
-			minLatitude = latitudeMean - 20d * Math.sqrt(latitudeVariance);
-			maxLatitude = latitudeMean + 20d * Math.sqrt(latitudeVariance);
-			minLongitude = longitudeMean - 20d * Math.sqrt(longitudeVariance);
-			maxLongitude = longitudeMean + 20d * Math.sqrt(longitudeVariance);
+			minLatitude = latitudeMean - NUM_DEVIATIONS * Math.sqrt(latitudeVariance);
+			maxLatitude = latitudeMean + NUM_DEVIATIONS * Math.sqrt(latitudeVariance);
+			minLongitude = longitudeMean - NUM_DEVIATIONS * Math.sqrt(longitudeVariance);
+			maxLongitude = longitudeMean + NUM_DEVIATIONS * Math.sqrt(longitudeVariance);
 		}
 		else
 		{
@@ -481,7 +460,7 @@ public class CabTripReducer
 			||  seg.getStart_long().get() < minLongitude || seg.getStart_long().get() > maxLongitude 
 			||  seg.getEnd_long().get() < minLongitude || seg.getEnd_long().get() > maxLongitude )
 			{
-				theLogger.info("Rejecting "+seg);
+				//theLogger.info("Rejecting "+seg);
 				continue;
 			}
 			
