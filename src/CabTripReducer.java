@@ -3,6 +3,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
@@ -68,6 +69,8 @@ public class CabTripReducer
 		for (Entry<String, String> entry : source.entrySet()) {
 		    String key = entry.getKey();
 		    Double value = Double.parseDouble(entry.getValue());
+
+			theLogger.info("key = "+key+", value = "+value);
 		    
 		    String[] bits = key.split(".");
 		    String mapperID = bits[bits.length-1];
@@ -121,6 +124,10 @@ public class CabTripReducer
     {
 		theLogger.setLevel(Level.INFO);
 		Configuration conf = context.getConfiguration();
+
+		/*
+		Iterator<Map.Entry<String,String>> iter = conf.iterator();
+		System.out.println(iter.next());
 		
 		HashMap<String, Double> sampleSizes = new HashMap<String, Double>();
 		HashMap<String, Double> sampleLatMeans = new HashMap<String, Double>();
@@ -128,22 +135,38 @@ public class CabTripReducer
 		HashMap<String, Double> sampleLngMeans = new HashMap<String, Double>();
 		HashMap<String, Double> sampleLngVariances = new HashMap<String, Double>();
 		
-		getPropertyValues(conf.getValByRegex("geo.sample.size."), sampleSizes);
-		getPropertyValues(conf.getValByRegex("latitude.mean."), sampleLatMeans);
-		getPropertyValues(conf.getValByRegex("longitude.mean."), sampleLatVariances);
-		getPropertyValues(conf.getValByRegex("latitude.variance."), sampleLngMeans);
-		getPropertyValues(conf.getValByRegex("longitude.variance."), sampleLngVariances);
+		getPropertyValues(conf.getValByRegex("geo.sample.size..+"), sampleSizes);
+		getPropertyValues(conf.getValByRegex("latitude.mean..+"), sampleLatMeans);
+		getPropertyValues(conf.getValByRegex("longitude.mean..+"), sampleLatVariances);
+		getPropertyValues(conf.getValByRegex("latitude.variance..+"), sampleLngMeans);
+		getPropertyValues(conf.getValByRegex("longitude.variance..+"), sampleLngVariances);
 
 		// calculate pooled mean and variance
 		double latitudeMean = getPooledMean(sampleLatMeans);
 		double latitudeVariance = getPooledVariance(sampleLatVariances, sampleSizes);
 		double longitudeMean = getPooledMean(sampleLngMeans);
 		double longitudeVariance = getPooledVariance(sampleLngVariances, sampleSizes);
+		*/
+		double sampleSize = conf.getDouble("geo.sample.size", -1);
+		double latitudeMean = conf.getDouble("latitude.mean", -1);
+		double latitudeVariance = conf.getDouble("latitude.variance", -1);
+		double longitudeMean = conf.getDouble("longitude.mean", -1);
+		double longitudeVariance = conf.getDouble("longitude.variance", -1);
 		
-		minLatitude = latitudeMean - 2d * Math.sqrt(latitudeVariance);
-		maxLatitude = latitudeMean + 2d * Math.sqrt(latitudeVariance);
-		minLongitude = longitudeMean - 2d * Math.sqrt(longitudeVariance);
-		maxLongitude = longitudeMean + 2d * Math.sqrt(longitudeVariance);
+		if (sampleSize != -1)
+		{
+			minLatitude = latitudeMean - 2d * Math.sqrt(latitudeVariance);
+			maxLatitude = latitudeMean + 2d * Math.sqrt(latitudeVariance);
+			minLongitude = longitudeMean - 2d * Math.sqrt(longitudeVariance);
+			maxLongitude = longitudeMean + 2d * Math.sqrt(longitudeVariance);
+		}
+		else
+		{
+			minLatitude = -90d;
+			maxLatitude = 90d;
+			minLongitude = -180d;
+			maxLongitude = 180d;
+		}
 		
 		theLogger.info("Lat range: ["+Double.toString(minLatitude)+", "+Double.toString(maxLatitude)+"]");
 		theLogger.info("Long range: ["+Double.toString(minLongitude)+", "+Double.toString(maxLongitude)+"]");

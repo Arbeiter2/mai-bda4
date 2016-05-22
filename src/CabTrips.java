@@ -170,6 +170,14 @@ public class CabTrips extends Configured implements Tool{
 		conf.setBoolean("epochTime", epochTime);
 		conf.setLong("maxTripLength", maxTripLength);
 
+		// geolocation statistics
+        conf.set("geo.sample.size", Double.toString(-1L));
+        conf.set("latitude.mean", Double.toString(-1L));
+        conf.set("longitude.mean", Double.toString(-1L));
+        conf.set("latitude.variance", Double.toString(-1L));
+        conf.set("longitude.variance", Double.toString(-1L));
+
+
  		Job job = Job.getInstance(conf, "Cab trip builder");
 	    FileInputFormat.addInputPath(job, new Path(inputPath));
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));

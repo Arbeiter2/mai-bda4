@@ -22,11 +22,11 @@ public class CabTripMapper
 	private static Logger theLogger = Logger.getLogger(CabTripMapper.class);
 	private Text taxi_id = new Text();
 	private CabIDTimestamp vehicleTs = new CabIDTimestamp();
-	private ArrayList<Double> latitudeSamples; 
-	private ArrayList<Double> longitudeSamples;
+	private ArrayList<Double> latitudeSamples = new ArrayList<Double>(); 
+	private ArrayList<Double> longitudeSamples = new ArrayList<Double>();
 	private long sampleCouter = 0;
 	protected static DateFormat formatter = null; 
-	private final static int SAMPLE_FREQUEBCY = 10000;
+	private final static int SAMPLE_FREQUEBCY = 1000;
 	
 
 	@Override
@@ -158,16 +158,28 @@ public class CabTripMapper
 				.toArray(new Double[longitudeSamples.size()]));
 
 		Configuration conf = context.getConfiguration();
+
+		double sampleSize = Double.parseDouble(conf.get("geo.sample.size"));
+		if (sampleSize >= 1000L)
+			return;
 		
-		String mapperID = Integer.toString(context.getTaskAttemptID().getTaskID().getId());
+		//String mapperID = Integer.toString(context.getTaskAttemptID().getTaskID().getId());
 
 		// save mean and variance
-		conf.set("geo.sample.size."+mapperID, Double.toString(lat.length));
+		conf.setDouble("geo.sample.size", lat.length);
 
-		conf.set("latitude.mean."+mapperID, Double.toString(mean.evaluate(lat)));
-		conf.set("longitude.mean."+mapperID, Double.toString(mean.evaluate(lng)));
+		conf.setDouble("latitude.mean", mean.evaluate(lat));
+		conf.setDouble("longitude.mean", mean.evaluate(lng));
 		
-		conf.set("latitude.variance."+mapperID, Double.toString(var.evaluate(lat)));
-		conf.set("longitude.variance."+mapperID, Double.toString(var.evaluate(lat)));
+		conf.setDouble("latitude.variance", var.evaluate(lat));
+		conf.setDouble("longitude.variance", var.evaluate(lng));
+
+        theLogger.info("geo.sample.size = "+ lat.length);
+
+        theLogger.info("latitude.mean = "+ mean.evaluate(lat));
+        theLogger.info("longitude.mean = "+ mean.evaluate(lng));
+
+        theLogger.info("latitude.variance = "+ var.evaluate(lat));
+        theLogger.info("longitude.variance = "+ var.evaluate(lng));
 	}
 }
