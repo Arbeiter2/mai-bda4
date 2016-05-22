@@ -1,4 +1,6 @@
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,6 +11,8 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.Variance;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -159,20 +163,29 @@ public class CabTripMapper
 
 		Configuration conf = context.getConfiguration();
 
-		double sampleSize = Double.parseDouble(conf.get("geo.sample.size"));
-		if (sampleSize >= 1000L)
-			return;
-		
-		//String mapperID = Integer.toString(context.getTaskAttemptID().getTaskID().getId());
-
-		// save mean and variance
-		conf.setDouble("geo.sample.size", lat.length);
-
-		conf.setDouble("latitude.mean", mean.evaluate(lat));
-		conf.setDouble("longitude.mean", mean.evaluate(lng));
-		
-		conf.setDouble("latitude.variance", var.evaluate(lat));
-		conf.setDouble("longitude.variance", var.evaluate(lng));
+        try{
+            Path pt=new Path("hdfs:/tmp/geodata.csv");
+            FileSystem fs = FileSystem.get(conf);
+            BufferedWriter latFile=new BufferedWriter(new OutputStreamWriter(fs.append(pt)));
+                                       // TO append data to a file, use fs.append(Path f)
+            StringBuffer line = new StringBuffer();
+            line.append(latitudeSamples.size());
+            line.append(",");
+            line.append(mean.evaluate(lat));
+            line.append(",");
+            line.append(mean.evaluate(lng));
+            line.append(",");
+            line.append(var.evaluate(lat));
+            line.append(",");
+            line.append(var.evaluate(lng));
+            line.append("\n");
+            
+            System.out.println(line);
+            latFile.write(line.toString());
+            latFile.close();
+	    }catch(Exception e){
+	            System.out.println("File not found");
+	    }
 
         theLogger.info("geo.sample.size = "+ lat.length);
 
