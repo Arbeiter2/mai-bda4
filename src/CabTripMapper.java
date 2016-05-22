@@ -2,7 +2,12 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.TimeZone;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.moment.Variance;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -10,13 +15,18 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripSegment> {
+public class CabTripMapper 
+	extends Mapper<Object, Text, CabIDTimestamp, CabTripSegment> {
 
 
 	private static Logger theLogger = Logger.getLogger(CabTripMapper.class);
 	private Text taxi_id = new Text();
 	private CabIDTimestamp vehicleTs = new CabIDTimestamp();
+	private ArrayList<Double> latitudeSamples; 
+	private ArrayList<Double> longitudeSamples;
+	private long sampleCouter = 0;
 	protected static DateFormat formatter = null; 
+	private final static int SAMPLE_FREQUEBCY = 10000;
 	
 
 	@Override
@@ -30,7 +40,10 @@ public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripS
 		theLogger.info("M: splitId["+is.toString()+"]");
 	}
 	
-	public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+	public void map(Object key, Text value, Context context) 
+			throws IOException, 
+			InterruptedException 
+	{
 		// <taxi-id>, <start date>, <start pos (lat)>, <start pos (long)>, <start status> . . .
 		// . . . <end date> <end pos (lat)> <end pos (long)> <end status>
 		String[] tokens = value.toString().replace("'", "").trim().split(",");
@@ -106,6 +119,14 @@ public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripS
 			theLogger.error( e.getMessage(), e );
 			return;
 		}
+		
+		if (sampleCouter++ % SAMPLE_FREQUEBCY == 0L)
+		{
+			latitudeSamples.add(start_lat);
+			latitudeSamples.add(end_lat);
+			longitudeSamples.add(start_long);
+			longitudeSamples.add(end_long);
+		}
 
 
 		CabTripSegment seg = new CabTripSegment(tokens[4], start_epoch, start_lat, start_long, 
@@ -116,5 +137,37 @@ public class CabTripMapper extends Mapper<Object, Text, CabIDTimestamp, CabTripS
 		vehicleTs.settimestamp(start_epoch);
 		
 		context.write(vehicleTs, seg);
+	}
+
+	
+	@Override
+	protected void cleanup(Context context)
+			throws IOException, 
+			InterruptedException 
+	{
+		super.cleanup(context);
+		
+		// calculate mean and variance of latitude and longitude
+		Mean mean = new Mean();
+		Variance var = new Variance();
+		
+		double lat[] = ArrayUtils.toPrimitive(latitudeSamples
+				.toArray(new Double[latitudeSamples.size()]));
+		
+		double lng[] = ArrayUtils.toPrimitive(longitudeSamples
+				.toArray(new Double[longitudeSamples.size()]));
+
+		Configuration conf = context.getConfiguration();
+		
+		String mapperID = Integer.toString(context.getTaskAttemptID().getTaskID().getId());
+
+		// save mean and variance
+		conf.set("geo.sample.size."+mapperID, Double.toString(lat.length));
+
+		conf.set("latitude.mean."+mapperID, Double.toString(mean.evaluate(lat)));
+		conf.set("longitude.mean."+mapperID, Double.toString(mean.evaluate(lng)));
+		
+		conf.set("latitude.variance."+mapperID, Double.toString(var.evaluate(lat)));
+		conf.set("longitude.variance."+mapperID, Double.toString(var.evaluate(lat)));
 	}
 }

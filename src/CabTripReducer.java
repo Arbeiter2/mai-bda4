@@ -3,6 +3,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -38,7 +40,12 @@ public class CabTripReducer
 	
 	protected static long maxTripLength = -1;
 	
-	
+	// used for rejecting trips
+	protected double minLatitude = -1;
+	protected double maxLatitude = -1;
+	protected double minLongitude = -1;
+	protected double maxLongitude = -1;
+
 	
 	/**
 	 * records current trip ID for each taxi encountered in input
@@ -47,7 +54,66 @@ public class CabTripReducer
 	protected HashMap<Text, Boolean> inTrip = new HashMap<Text, Boolean>();
 	protected HashMap<Text, ArrayList<CabTripSegment>> segments = new HashMap<Text, ArrayList<CabTripSegment>>();
 
+	/**
+	 * process map of key-value pairs, write to new map
+	 * 
+	 * source key names are of format "a.b.c.<index>"
+	 * destination key is <index>
+	 * 
+	 * @param source
+	 * @param destination
+	 */
+	private void getPropertyValues(Map<String, String> source, Map<String, Double> destination)
+	{
+		for (Entry<String, String> entry : source.entrySet()) {
+		    String key = entry.getKey();
+		    Double value = Double.parseDouble(entry.getValue());
+		    
+		    String[] bits = key.split(".");
+		    String mapperID = bits[bits.length-1];
+		    destination.put(mapperID, value);
+		}
+	}
 	
+	/**
+	 * calculate pooled variance
+	 * 
+	 * @param variances
+	 * @param sampleSizes
+	 * @return
+	 */
+	private double getPooledVariance(Map<String, Double> variances, Map<String, Double> sampleSizes)
+	{
+		double numerator = 0d;
+		double denominator = 0d;
+		for (String mapperID : sampleSizes.keySet())
+		{
+			numerator += sampleSizes.get(mapperID) * variances.get(mapperID);
+			denominator += sampleSizes.get(mapperID);
+		}
+		return numerator/denominator;
+	}
+	
+	/**
+	 * @param means
+	 * @return
+	 */
+	private double getPooledMean(Map<String, Double> means)
+	{
+		double out = 0d;
+		if (means.size() == 0)
+			return 0d;
+		
+		for (Double mean : means.values())
+		{
+			out += mean;
+		}		
+		return out/means.size();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.apache.hadoop.mapreduce.Reducer#setup(org.apache.hadoop.mapreduce.Reducer.Context)
+	 */
 	@Override
 	protected void setup(Context context)
             throws IOException,
@@ -55,6 +121,32 @@ public class CabTripReducer
     {
 		theLogger.setLevel(Level.INFO);
 		Configuration conf = context.getConfiguration();
+		
+		HashMap<String, Double> sampleSizes = new HashMap<String, Double>();
+		HashMap<String, Double> sampleLatMeans = new HashMap<String, Double>();
+		HashMap<String, Double> sampleLatVariances = new HashMap<String, Double>();
+		HashMap<String, Double> sampleLngMeans = new HashMap<String, Double>();
+		HashMap<String, Double> sampleLngVariances = new HashMap<String, Double>();
+		
+		getPropertyValues(conf.getValByRegex("geo.sample.size."), sampleSizes);
+		getPropertyValues(conf.getValByRegex("latitude.mean."), sampleLatMeans);
+		getPropertyValues(conf.getValByRegex("longitude.mean."), sampleLatVariances);
+		getPropertyValues(conf.getValByRegex("latitude.variance."), sampleLngMeans);
+		getPropertyValues(conf.getValByRegex("longitude.variance."), sampleLngVariances);
+
+		// calculate pooled mean and variance
+		double latitudeMean = getPooledMean(sampleLatMeans);
+		double latitudeVariance = getPooledVariance(sampleLatVariances, sampleSizes);
+		double longitudeMean = getPooledMean(sampleLngMeans);
+		double longitudeVariance = getPooledVariance(sampleLngVariances, sampleSizes);
+		
+		minLatitude = latitudeMean - 2d * Math.sqrt(latitudeVariance);
+		maxLatitude = latitudeMean + 2d * Math.sqrt(latitudeVariance);
+		minLongitude = longitudeMean - 2d * Math.sqrt(longitudeVariance);
+		maxLongitude = longitudeMean + 2d * Math.sqrt(longitudeVariance);
+		
+		theLogger.info("Lat range: ["+Double.toString(minLatitude)+", "+Double.toString(maxLatitude)+"]");
+		theLogger.info("Long range: ["+Double.toString(minLongitude)+", "+Double.toString(maxLongitude)+"]");
 
 		summaryOutput = conf.getBoolean("summaryOutput", true);
 		epochTime = conf.getBoolean("epochTime", true);
@@ -341,8 +433,17 @@ public class CabTripReducer
 			}
 			
 			CabTripSegment seg = new CabTripSegment(segment);
-		
-			// check whether the end of the last segment was in the last hour
+			
+			// reject all samples with coordinates very different from the majority
+			if (seg.getStart_lat().get() < minLatitude || seg.getStart_lat().get() > maxLatitude 
+			||  seg.getEnd_lat().get() < minLatitude || seg.getEnd_lat().get() > maxLatitude 
+			||  seg.getStart_long().get() < minLongitude || seg.getStart_long().get() > maxLongitude 
+			||  seg.getEnd_long().get() < minLongitude || seg.getEnd_long().get() > maxLongitude )
+			{
+				theLogger.info("Rejecting "+seg);
+				continue;
+			}
+			
 			String start_status = seg.getStart_status().toString();
 			String end_status = seg.getEnd_status().toString();
 			
