@@ -162,11 +162,19 @@ public class CabTripMapper
 				.toArray(new Double[longitudeSamples.size()]));
 
 		Configuration conf = context.getConfiguration();
+		conf.addResource(new Path("/HADOOP_HOME/conf/core-site.xml"));
+		conf.addResource(new Path("/HADOOP_HOME/conf/hdfs-site.xml"));
+		String geoDataFilePath = conf.get("geoDataFilePath", "hdfs:/tmp/cabtrips-geodata.csv");
 
         try{
-            Path pt=new Path("hdfs:/tmp/geodata.csv");
+            Path pt=new Path(geoDataFilePath);
             FileSystem fs = FileSystem.get(conf);
-            BufferedWriter latFile=new BufferedWriter(new OutputStreamWriter(fs.append(pt)));
+			org.apache.hadoop.fs.FSDataOutputStream stream;
+			if ( fs.exists( pt )) 
+				stream = fs.append(pt);
+			else
+				stream = fs.create(pt, true);
+            BufferedWriter latFile=new BufferedWriter(new OutputStreamWriter(stream));
                                        // TO append data to a file, use fs.append(Path f)
             StringBuffer line = new StringBuffer();
             line.append(latitudeSamples.size());
@@ -180,11 +188,10 @@ public class CabTripMapper
             line.append(var.evaluate(lng));
             line.append("\n");
             
-            System.out.println(line);
             latFile.write(line.toString());
             latFile.close();
 	    }catch(Exception e){
-	            System.out.println("File not found");
+	            System.out.println("Exception: "+e.toString());
 	    }
 
         theLogger.info("geo.sample.size = "+ lat.length);

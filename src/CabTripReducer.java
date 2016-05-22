@@ -7,6 +7,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -85,14 +89,17 @@ public class CabTripReducer
 	 * @param sampleSizes
 	 * @return
 	 */
-	private double getPooledVariance(Map<String, Double> variances, Map<String, Double> sampleSizes)
+	private double getPooledVariance(ArrayList<Double> variances, ArrayList<Double> sampleSizes)
 	{
 		double numerator = 0d;
 		double denominator = 0d;
-		for (String mapperID : sampleSizes.keySet())
+		Iterator<Double> var = variances.iterator();
+		Iterator<Double> n = sampleSizes.iterator();
+		while (var.hasNext() && n.hasNext())
 		{
-			numerator += sampleSizes.get(mapperID) * variances.get(mapperID);
-			denominator += sampleSizes.get(mapperID);
+			double nVal = n.next();
+			numerator += var.next() * nVal;
+			denominator += (nVal - 1);
 		}
 		return numerator/denominator;
 	}
@@ -101,13 +108,13 @@ public class CabTripReducer
 	 * @param means
 	 * @return
 	 */
-	private double getPooledMean(Map<String, Double> means)
+	private double getPooledMean(ArrayList<Double> means)
 	{
 		double out = 0d;
 		if (means.size() == 0)
 			return 0d;
 		
-		for (Double mean : means.values())
+		for (Double mean : means)
 		{
 			out += mean;
 		}		
@@ -125,40 +132,51 @@ public class CabTripReducer
 		theLogger.setLevel(Level.INFO);
 		Configuration conf = context.getConfiguration();
 
-		/*
-		Iterator<Map.Entry<String,String>> iter = conf.iterator();
-		System.out.println(iter.next());
-		
-		HashMap<String, Double> sampleSizes = new HashMap<String, Double>();
-		HashMap<String, Double> sampleLatMeans = new HashMap<String, Double>();
-		HashMap<String, Double> sampleLatVariances = new HashMap<String, Double>();
-		HashMap<String, Double> sampleLngMeans = new HashMap<String, Double>();
-		HashMap<String, Double> sampleLngVariances = new HashMap<String, Double>();
-		
-		getPropertyValues(conf.getValByRegex("geo.sample.size..+"), sampleSizes);
-		getPropertyValues(conf.getValByRegex("latitude.mean..+"), sampleLatMeans);
-		getPropertyValues(conf.getValByRegex("longitude.mean..+"), sampleLatVariances);
-		getPropertyValues(conf.getValByRegex("latitude.variance..+"), sampleLngMeans);
-		getPropertyValues(conf.getValByRegex("longitude.variance..+"), sampleLngVariances);
+		ArrayList<Double> sampleSizes = new ArrayList<Double>();
+		ArrayList<Double> sampleLatMeans = new ArrayList<Double>();
+		ArrayList<Double> sampleLatVariances = new ArrayList<Double>();
+		ArrayList<Double> sampleLngMeans = new ArrayList<Double>();
+		ArrayList<Double> sampleLngVariances = new ArrayList<Double>();
+
+		// process geodata stats file 
+		String geoDataFilePath = conf.get("geoDataFilePath", "hdfs:/tmp/cabtrips-geodata.csv");
+
+		try {
+			Path pt=new Path(geoDataFilePath);
+			FileSystem fs = FileSystem.get(conf);
+			BufferedReader br=new BufferedReader(new InputStreamReader(fs.open(pt)));
+			String line, fields[];
+			line=br.readLine();
+			while (line != null)
+			{
+				line = line.trim();
+				fields = line.split(",");
+				sampleSizes.add(Double.parseDouble(fields[0]));
+				sampleLatMeans.add(Double.parseDouble(fields[1]));
+				sampleLngMeans.add(Double.parseDouble(fields[2]));
+				sampleLatVariances.add(Double.parseDouble(fields[3]));
+				sampleLngVariances.add(Double.parseDouble(fields[4]));
+
+				line=br.readLine();
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("Exception: "+e.toString());
+		}
 
 		// calculate pooled mean and variance
 		double latitudeMean = getPooledMean(sampleLatMeans);
 		double latitudeVariance = getPooledVariance(sampleLatVariances, sampleSizes);
 		double longitudeMean = getPooledMean(sampleLngMeans);
 		double longitudeVariance = getPooledVariance(sampleLngVariances, sampleSizes);
-		*/
-		double sampleSize = conf.getDouble("geo.sample.size", -1);
-		double latitudeMean = conf.getDouble("latitude.mean", -1);
-		double latitudeVariance = conf.getDouble("latitude.variance", -1);
-		double longitudeMean = conf.getDouble("longitude.mean", -1);
-		double longitudeVariance = conf.getDouble("longitude.variance", -1);
 		
-		if (sampleSize != -1)
+		if (sampleSizes.size() > 0)
 		{
-			minLatitude = latitudeMean - 2d * Math.sqrt(latitudeVariance);
-			maxLatitude = latitudeMean + 2d * Math.sqrt(latitudeVariance);
-			minLongitude = longitudeMean - 2d * Math.sqrt(longitudeVariance);
-			maxLongitude = longitudeMean + 2d * Math.sqrt(longitudeVariance);
+			minLatitude = latitudeMean - 20d * Math.sqrt(latitudeVariance);
+			maxLatitude = latitudeMean + 20d * Math.sqrt(latitudeVariance);
+			minLongitude = longitudeMean - 20d * Math.sqrt(longitudeVariance);
+			maxLongitude = longitudeMean + 20d * Math.sqrt(longitudeVariance);
 		}
 		else
 		{

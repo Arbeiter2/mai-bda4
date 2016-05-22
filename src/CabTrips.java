@@ -6,6 +6,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -170,13 +171,21 @@ public class CabTrips extends Configured implements Tool{
 		conf.setBoolean("epochTime", epochTime);
 		conf.setLong("maxTripLength", maxTripLength);
 
-		// geolocation statistics
-        conf.set("geo.sample.size", Double.toString(-1L));
-        conf.set("latitude.mean", Double.toString(-1L));
-        conf.set("longitude.mean", Double.toString(-1L));
-        conf.set("latitude.variance", Double.toString(-1L));
-        conf.set("longitude.variance", Double.toString(-1L));
+		String geoDataFilePath = "hdfs:/tmp/cabtrips-geodata.csv";
+		conf.set("geoDataFilePath", geoDataFilePath);
 
+
+		conf.addResource(new Path("/HADOOP_HOME/conf/core-site.xml"));
+		conf.addResource(new Path("/HADOOP_HOME/conf/hdfs-site.xml"));
+
+		try{
+			Path pt=new Path(geoDataFilePath);
+			FileSystem fs = FileSystem.get(conf);
+			fs.delete(pt);
+		}
+		catch (Exception e)
+		{
+		}
 
  		Job job = Job.getInstance(conf, "Cab trip builder");
 	    FileInputFormat.addInputPath(job, new Path(inputPath));
